@@ -714,12 +714,12 @@
                     <h4 class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5 mb-1">
                         <i class="ph-bold ph-floppy-disk text-purple-500 dark:text-purple-400 text-sm"></i> Lokaal Bestand Backup (.json)
                     </h4>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-3">Download of importeer handmatig een backupbestand op je harde schijf of telefoon.</p>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-3">Download of importeer een backupbestand. <strong>Wordt direct gesynchroniseerd naar je Google Cloud account!</strong></p>
                     <div class="flex gap-2">
                         <button onclick="exportLocalBackupJSON()" class="bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-3 rounded-lg text-xs flex-1 flex items-center justify-center gap-1 border border-slate-300 dark:border-slate-700 cursor-pointer">
                             <i class="ph-bold ph-export"></i> Exporteer Bestand
                         </button>
-                        <label class="bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-3 rounded-lg text-xs flex-1 flex items-center justify-center gap-1 border border-slate-300 dark:border-slate-700 cursor-pointer">
+                        <label class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-3 rounded-lg text-xs flex-1 flex items-center justify-center gap-1 cursor-pointer shadow-sm">
                             <i class="ph-bold ph-file-arrow-up"></i> Importeer Bestand
                             <input type="file" id="import-json-file" accept=".json" onchange="importLocalBackupJSON(event)" class="hidden">
                         </label>
@@ -745,7 +745,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =========================================================================
         // FIREBASE CONFIGURATIE (GEKOPPELD MET JOUW PROJECT)
@@ -919,7 +919,6 @@
             if (!auth) return;
             try {
                 await signOut(auth);
-                // Schakel automatisch terug naar anonieme gastmodus
                 await signInAnonymously(auth);
             } catch (err) {
                 console.error("Uitloggen fout:", err);
@@ -1128,7 +1127,6 @@
                             useLocalStorage = false;
                             setupFirebaseListeners();
                         } else {
-                            // Probeer anoniem in te loggen als gast
                             try {
                                 await signInAnonymously(auth);
                             } catch (e) {
@@ -1153,33 +1151,32 @@
         function setupFirebaseListeners() {
             if (!currentUser || useLocalStorage) return;
 
-            // Stop eerdere listeners bij accountwisseling
             activeSnapshotUnsubscribers.forEach(unsub => unsub());
             activeSnapshotUnsubscribers = [];
 
             const userPath = ['artifacts', appId, 'users', currentUser.uid];
 
             const unsubBikes = onSnapshot(collection(db, ...userPath, 'bikes'), (snap) => {
-                bikes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                bikes = snap.docs.map(d => ({ ...d.data(), id: d.id }));
                 saveLocalData();
                 updateBikeDropdowns();
                 renderAllViews();
             }, (err) => console.warn("Firestore bikes listener:", err));
 
             const unsubExpenses = onSnapshot(collection(db, ...userPath, 'expenses'), (snap) => {
-                expenses = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(b.date) - new Date(a.date));
+                expenses = snap.docs.map(d => ({ ...d.data(), id: d.id })).sort((a,b) => new Date(b.date) - new Date(a.date));
                 saveLocalData();
                 renderAllViews();
             }, (err) => console.warn("Firestore expenses listener:", err));
 
             const unsubRides = onSnapshot(collection(db, ...userPath, 'rides'), (snap) => {
-                rides = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(b.date) - new Date(a.date));
+                rides = snap.docs.map(d => ({ ...d.data(), id: d.id })).sort((a,b) => new Date(b.date) - new Date(a.date));
                 saveLocalData();
                 renderAllViews();
             }, (err) => console.warn("Firestore rides listener:", err));
 
             const unsubComponents = onSnapshot(collection(db, ...userPath, 'components'), (snap) => {
-                components = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                components = snap.docs.map(d => ({ ...d.data(), id: d.id }));
                 saveLocalData();
                 renderAllViews();
             }, (err) => console.warn("Firestore components listener:", err));
@@ -1188,7 +1185,7 @@
         }
 
         // =========================================================================
-        // FORM SUBMIT HANDLERS
+        // FORM SUBMIT HANDLERS (MET CLOUD SYNC VIA SETDOC)
         // =========================================================================
         document.getElementById('form-add-bike')?.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1200,6 +1197,18 @@
             const purchasePrice = parseFloat(document.getElementById('bike-purchase-price').value) || 0;
             const resaleValue = parseFloat(document.getElementById('bike-resale-value').value) || 0;
 
+            const bikeId = editId || ('bike_' + Date.now());
+            const bikeObj = { 
+                id: bikeId, 
+                name, 
+                type, 
+                purchaseDate,
+                startOdo, 
+                purchasePrice, 
+                resaleValue, 
+                createdAt: new Date().toISOString() 
+            };
+
             if (editId) {
                 const existing = bikes.find(b => b.id === editId);
                 if (existing) {
@@ -1210,44 +1219,20 @@
                     existing.purchasePrice = purchasePrice;
                     existing.resaleValue = resaleValue;
                 }
-                saveLocalData();
-                updateBikeDropdowns();
-                renderAllViews();
-                closeModal('modal-bike');
-
-                if (!useLocalStorage && currentUser && db) {
-                    try {
-                        await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bikes', editId), {
-                            name, type, purchaseDate, startOdo, purchasePrice, resaleValue
-                        });
-                    } catch (err) {
-                        console.warn("Cloud sync update bike fout:", err);
-                    }
-                }
             } else {
-                const bikeObj = { 
-                    id: 'bike_' + Date.now(), 
-                    name, 
-                    type, 
-                    purchaseDate,
-                    startOdo, 
-                    purchasePrice, 
-                    resaleValue, 
-                    createdAt: new Date().toISOString() 
-                };
-
                 bikes.push(bikeObj);
-                saveLocalData();
-                updateBikeDropdowns();
-                renderAllViews();
-                closeModal('modal-bike');
+            }
 
-                if (!useLocalStorage && currentUser && db) {
-                    try {
-                        await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'bikes'), bikeObj);
-                    } catch (err) {
-                        console.warn("Cloud sync add bike fout:", err);
-                    }
+            saveLocalData();
+            updateBikeDropdowns();
+            renderAllViews();
+            closeModal('modal-bike');
+
+            if (!useLocalStorage && currentUser && db) {
+                try {
+                    await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bikes', bikeId), bikeObj, { merge: true });
+                } catch (err) {
+                    console.warn("Cloud sync bike fout:", err);
                 }
             }
             e.target.reset();
@@ -1262,6 +1247,18 @@
             const rideType = document.getElementById('ride-type').value;
             const duration = parseInt(document.getElementById('ride-duration').value) || 0;
             const notes = document.getElementById('ride-notes').value;
+
+            const rideId = editId || ('ride_' + Date.now());
+            const rideObj = { 
+                id: rideId, 
+                bikeId, 
+                date, 
+                distance, 
+                rideType, 
+                duration, 
+                notes, 
+                createdAt: new Date().toISOString() 
+            };
 
             if (editId) {
                 const existing = rides.find(r => r.id === editId);
@@ -1287,60 +1284,28 @@
                         });
                     }
                 }
-                saveLocalData();
-                renderAllViews();
-                cancelRideEdit();
-
-                if (!useLocalStorage && currentUser && db) {
-                    try {
-                        await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'rides', editId), {
-                            bikeId, date, distance, rideType, duration, notes
-                        });
-                        for (const comp of components) {
-                            await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'components', comp.id), {
-                                currentKm: comp.currentKm
-                            });
-                        }
-                    } catch (err) {
-                        console.warn("Cloud sync update ride fout:", err);
-                    }
-                }
             } else {
-                const rideObj = { 
-                    id: 'ride_' + Date.now(), 
-                    bikeId, 
-                    date, 
-                    distance, 
-                    rideType, 
-                    duration, 
-                    notes, 
-                    createdAt: new Date().toISOString() 
-                };
-
                 rides.unshift(rideObj);
-
                 components.forEach(comp => {
                     if (comp.bikeId === bikeId) {
                         comp.currentKm = (comp.currentKm || 0) + distance;
                     }
                 });
+            }
 
-                saveLocalData();
-                renderAllViews();
-                cancelRideEdit();
+            saveLocalData();
+            renderAllViews();
+            cancelRideEdit();
 
-                if (!useLocalStorage && currentUser && db) {
-                    try {
-                        await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'rides'), rideObj);
-                        const bikeComponents = components.filter(c => c.bikeId === bikeId);
-                        for (const comp of bikeComponents) {
-                            await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'components', comp.id), {
-                                currentKm: comp.currentKm
-                            });
-                        }
-                    } catch (err) {
-                        console.warn("Cloud sync add ride fout:", err);
+            if (!useLocalStorage && currentUser && db) {
+                try {
+                    await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'rides', rideId), rideObj, { merge: true });
+                    const bikeComponents = components.filter(c => c.bikeId === bikeId);
+                    for (const comp of bikeComponents) {
+                        await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'components', comp.id), comp, { merge: true });
                     }
+                } catch (err) {
+                    console.warn("Cloud sync ride fout:", err);
                 }
             }
         });
@@ -1357,6 +1322,18 @@
             const odoVal = document.getElementById('exp-odometer').value;
             const odometer = isUnknown || odoVal === '' ? null : parseInt(odoVal, 10);
 
+            const expId = editId || ('exp_' + Date.now());
+            const expObj = { 
+                id: expId, 
+                bikeId, 
+                date, 
+                category, 
+                description, 
+                amount, 
+                odometer, 
+                createdAt: new Date().toISOString() 
+            };
+
             if (editId) {
                 const existing = expenses.find(item => item.id === editId);
                 if (existing) {
@@ -1367,42 +1344,19 @@
                     existing.amount = amount;
                     existing.odometer = odometer;
                 }
-                saveLocalData();
-                renderAllViews();
-                cancelExpenseEdit();
-
-                if (!useLocalStorage && currentUser && db) {
-                    try {
-                        await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses', editId), {
-                            bikeId, date, category, description, amount, odometer
-                        });
-                    } catch (err) {
-                        console.warn("Cloud sync update expense fout:", err);
-                    }
-                }
             } else {
-                const expObj = { 
-                    id: 'exp_' + Date.now(), 
-                    bikeId, 
-                    date, 
-                    category, 
-                    description, 
-                    amount, 
-                    odometer, 
-                    createdAt: new Date().toISOString() 
-                };
-
                 expenses.unshift(expObj);
-                saveLocalData();
-                renderAllViews();
-                cancelExpenseEdit();
+            }
 
-                if (!useLocalStorage && currentUser && db) {
-                    try {
-                        await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses'), expObj);
-                    } catch (err) {
-                        console.warn("Cloud sync add expense fout:", err);
-                    }
+            saveLocalData();
+            renderAllViews();
+            cancelExpenseEdit();
+
+            if (!useLocalStorage && currentUser && db) {
+                try {
+                    await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses', expId), expObj, { merge: true });
+                } catch (err) {
+                    console.warn("Cloud sync expense fout:", err);
                 }
             }
         });
@@ -1415,6 +1369,17 @@
             const category = document.getElementById('comp-category').value;
             const expectedLifespan = parseInt(document.getElementById('comp-lifespan').value) || 3000;
 
+            const compId = editId || ('comp_' + Date.now());
+            const compObj = { 
+                id: compId, 
+                bikeId, 
+                name, 
+                category, 
+                expectedLifespan, 
+                currentKm: 0, 
+                createdAt: new Date().toISOString() 
+            };
+
             if (editId) {
                 const existing = components.find(c => c.id === editId);
                 if (existing) {
@@ -1423,41 +1388,19 @@
                     existing.category = category;
                     existing.expectedLifespan = expectedLifespan;
                 }
-                saveLocalData();
-                renderAllViews();
-                closeModal('modal-component');
-
-                if (!useLocalStorage && currentUser && db) {
-                    try {
-                        await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'components', editId), {
-                            bikeId, name, category, expectedLifespan
-                        });
-                    } catch (err) {
-                        console.warn("Cloud sync update comp fout:", err);
-                    }
-                }
             } else {
-                const compObj = { 
-                    id: 'comp_' + Date.now(), 
-                    bikeId, 
-                    name, 
-                    category, 
-                    expectedLifespan, 
-                    currentKm: 0, 
-                    createdAt: new Date().toISOString() 
-                };
-
                 components.push(compObj);
-                saveLocalData();
-                renderAllViews();
-                closeModal('modal-component');
+            }
 
-                if (!useLocalStorage && currentUser && db) {
-                    try {
-                        await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'components'), compObj);
-                    } catch (err) {
-                        console.warn("Cloud sync add comp fout:", err);
-                    }
+            saveLocalData();
+            renderAllViews();
+            closeModal('modal-component');
+
+            if (!useLocalStorage && currentUser && db) {
+                try {
+                    await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'components', compId), compObj, { merge: true });
+                } catch (err) {
+                    console.warn("Cloud sync component fout:", err);
                 }
             }
             e.target.reset();
@@ -1492,9 +1435,7 @@
 
                 if (!useLocalStorage && currentUser && db) {
                     try {
-                        await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'components', id), {
-                            currentKm: 0
-                        });
+                        await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'components', id), { currentKm: 0 }, { merge: true });
                     } catch (err) {
                         console.warn("Cloud sync replace comp fout:", err);
                     }
@@ -1503,7 +1444,7 @@
         };
 
         // =========================================================================
-        // GOOGLE DRIVE & LOKALE BACKUP
+        // GOOGLE DRIVE & LOKALE BACKUP (MET DIRECTE CLOUD SYNC)
         // =========================================================================
         window.exportLocalBackupJSON = function() {
             const backupObj = { bikes, expenses, rides, components, exportedAt: new Date().toISOString() };
@@ -1520,20 +1461,64 @@
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
-                    if (data.bikes) bikes = data.bikes;
-                    if (data.expenses) expenses = data.expenses;
-                    if (data.rides) rides = data.rides;
-                    if (data.components) components = data.components;
+                    const importedBikes = data.bikes || [];
+                    const importedExpenses = data.expenses || [];
+                    const importedRides = data.rides || [];
+                    const importedComponents = data.components || [];
+
+                    // 1. Direct in het geheugen en lokaal laden
+                    bikes = importedBikes;
+                    expenses = importedExpenses;
+                    rides = importedRides;
+                    components = importedComponents;
                     saveLocalData();
                     updateBikeDropdowns();
                     renderAllViews();
                     closeModal('modal-drive-sync');
-                    showMessageModal("Import Succesvol", "Je gegevens zijn succesvol geïmporteerd!");
+
+                    // 2. Direct wegschrijven naar Cloud Firestore voor het ingelogde Google account!
+                    if (!useLocalStorage && currentUser && db) {
+                        const userPath = ['artifacts', appId, 'users', currentUser.uid];
+                        const operations = [];
+
+                        importedBikes.forEach(b => {
+                            const id = b.id || ('bike_' + Math.random().toString(36).substr(2, 9));
+                            b.id = id;
+                            operations.push({ ref: doc(db, ...userPath, 'bikes', id), data: b });
+                        });
+                        importedExpenses.forEach(exp => {
+                            const id = exp.id || ('exp_' + Math.random().toString(36).substr(2, 9));
+                            exp.id = id;
+                            operations.push({ ref: doc(db, ...userPath, 'expenses', id), data: exp });
+                        });
+                        importedRides.forEach(r => {
+                            const id = r.id || ('ride_' + Math.random().toString(36).substr(2, 9));
+                            r.id = id;
+                            operations.push({ ref: doc(db, ...userPath, 'rides', id), data: r });
+                        });
+                        importedComponents.forEach(c => {
+                            const id = c.id || ('comp_' + Math.random().toString(36).substr(2, 9));
+                            c.id = id;
+                            operations.push({ ref: doc(db, ...userPath, 'components', id), data: c });
+                        });
+
+                        // Schrijf in veilige batches van maximaal 400 documenten
+                        const chunkSize = 400;
+                        for (let i = 0; i < operations.length; i += chunkSize) {
+                            const chunk = operations.slice(i, i + chunkSize);
+                            const batch = writeBatch(db);
+                            chunk.forEach(op => batch.set(op.ref, op.data, { merge: true }));
+                            await batch.commit();
+                        }
+                    }
+
+                    showMessageModal("Import Succesvol", "Je backup is succesvol geïmporteerd én direct gesynchroniseerd met je Google Cloud database!");
                 } catch (err) {
-                    showMessageModal("Import Fout", "Ongeldig JSON bestand.", false);
+                    console.error("Import fout:", err);
+                    showMessageModal("Import Fout", "Fout bij importeren of opslaan: " + err.message, false);
                 }
             };
             reader.readAsText(file);
