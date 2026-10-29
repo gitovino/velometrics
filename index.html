@@ -207,6 +207,21 @@
 
             <!-- Global Controls & Actions -->
             <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Google Authentication Profile / Button -->
+                <div id="auth-box" class="flex items-center">
+                    <button id="btn-login-google" onclick="loginWithGoogle()" class="text-xs font-semibold bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer">
+                        <i class="ph-bold ph-google-logo text-base text-red-500"></i>
+                        <span id="auth-btn-label">Inloggen met Google</span>
+                    </button>
+                    <div id="user-profile" class="hidden flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 py-1 px-2 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <img id="user-avatar" class="w-7 h-7 rounded-full border border-blue-500" src="" alt="Avatar">
+                        <span id="user-name" class="text-xs font-bold text-slate-800 dark:text-slate-200 hidden md:inline"></span>
+                        <button onclick="logoutUser()" title="Uitloggen" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer transition-colors">
+                            <i class="ph-bold ph-sign-out text-base"></i>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Bike Selector -->
                 <div class="hidden sm:flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700/80 transition-colors">
                     <i class="ph-bold ph-funnel text-blue-500 dark:text-blue-400 text-xs"></i>
@@ -729,7 +744,7 @@
     <!-- Application Code -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =========================================================================
@@ -748,6 +763,7 @@
         const appId = 'velometrics-pro-app';
         let app, db, auth, currentUser;
         let useLocalStorage = false;
+        let activeSnapshotUnsubscribers = [];
 
         let bikes = [], expenses = [], rides = [], components = [];
         let selectedBikeFilter = 'all';
@@ -881,6 +897,56 @@
         }
 
         // =========================================================================
+        // GOOGLE AUTHENTICATION INTEGRATIE
+        // =========================================================================
+        window.loginWithGoogle = async function() {
+            if (!auth) {
+                showMessageModal("Verbindingsfout", "Firebase is nog niet geïnitialiseerd.");
+                return;
+            }
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (err) {
+                console.error("Google login fout:", err);
+                if (err.code !== 'auth/popup-closed-by-user') {
+                    showMessageModal("Inloggen Mislukt", "Fout bij inloggen met Google: " + err.message);
+                }
+            }
+        };
+
+        window.logoutUser = async function() {
+            if (!auth) return;
+            try {
+                await signOut(auth);
+                // Schakel automatisch terug naar anonieme gastmodus
+                await signInAnonymously(auth);
+            } catch (err) {
+                console.error("Uitloggen fout:", err);
+            }
+        };
+
+        function updateAuthUI(user) {
+            const btnLogin = document.getElementById('btn-login-google');
+            const profileBox = document.getElementById('user-profile');
+            const userAvatar = document.getElementById('user-avatar');
+            const userName = document.getElementById('user-name');
+            const networkText = document.getElementById('network-text');
+
+            if (user && !user.isAnonymous) {
+                if (btnLogin) btnLogin.classList.add('hidden');
+                if (profileBox) profileBox.classList.remove('hidden');
+                if (userAvatar) userAvatar.src = user.photoURL || 'https://api.dicebear.com/7.x/identicon/svg?seed=' + user.uid;
+                if (userName) userName.innerText = user.displayName ? user.displayName.split(' ')[0] : 'Gebruiker';
+                if (networkText) networkText.innerText = `Google Sync (${user.displayName || 'Cloud'})`;
+            } else {
+                if (btnLogin) btnLogin.classList.remove('hidden');
+                if (profileBox) profileBox.classList.add('hidden');
+                if (networkText) networkText.innerText = user ? "Gastmodus (Firebase)" : "Lokaal Geheugen";
+            }
+        }
+
+        // =========================================================================
         // MODAL OPENERS (ADD & EDIT)
         // =========================================================================
         window.openAddBikeModal = function() {
@@ -940,7 +1006,6 @@
             document.getElementById('btn-comp-submit-text').innerText = currentLang === 'nl' ? "Onderdeel Bijwerken" : "Update Component";
         };
 
-        // Edit Ride Handlers
         window.editRide = function(id) {
             const r = rides.find(item => item.id === id);
             if (!r) return;
@@ -967,7 +1032,6 @@
             document.getElementById('heading-ride-form').innerText = translations[currentLang].log_ride_title;
         };
 
-        // Edit Expense Handlers
         window.editExpense = function(id) {
             const e = expenses.find(item => item.id === id);
             if (!e) return;
@@ -1055,18 +1119,24 @@
                     db = getFirestore(app);
                     auth = getAuth(app);
 
-                    await signInAnonymously(auth);
+                    onAuthStateChanged(auth, async (user) => {
+                        currentUser = user;
+                        updateAuthUI(user);
+                        document.getElementById('loading-overlay').style.display = 'none';
 
-                    onAuthStateChanged(auth, (user) => {
                         if (user) {
-                            currentUser = user;
                             useLocalStorage = false;
-                            const badge = document.getElementById('network-text');
-                            if (badge) badge.innerText = "Firebase Cloud Sync";
-                            document.getElementById('loading-overlay').style.display = 'none';
                             setupFirebaseListeners();
-                            setLanguage(currentLang);
+                        } else {
+                            // Probeer anoniem in te loggen als gast
+                            try {
+                                await signInAnonymously(auth);
+                            } catch (e) {
+                                useLocalStorage = true;
+                                loadLocalData();
+                            }
                         }
+                        setLanguage(currentLang);
                     });
                     return;
                 } catch (err) {
@@ -1075,8 +1145,7 @@
             }
 
             useLocalStorage = true;
-            const badge = document.getElementById('network-text');
-            if (badge) badge.innerText = "Lokaal Geheugen";
+            document.getElementById('network-text').innerText = "Lokaal Geheugen";
             document.getElementById('loading-overlay').style.display = 'none';
             setLanguage(currentLang);
         }
@@ -1084,42 +1153,42 @@
         function setupFirebaseListeners() {
             if (!currentUser || useLocalStorage) return;
 
-            onSnapshot(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'bikes'), (snap) => {
-                if (!snap.empty) {
-                    bikes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    saveLocalData();
-                    updateBikeDropdowns();
-                    renderAllViews();
-                }
-            }, (err) => console.warn("Firestore listener warning:", err));
+            // Stop eerdere listeners bij accountwisseling
+            activeSnapshotUnsubscribers.forEach(unsub => unsub());
+            activeSnapshotUnsubscribers = [];
 
-            onSnapshot(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses'), (snap) => {
-                if (!snap.empty) {
-                    expenses = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(b.date) - new Date(a.date));
-                    saveLocalData();
-                    renderAllViews();
-                }
-            }, (err) => console.warn("Firestore listener warning:", err));
+            const userPath = ['artifacts', appId, 'users', currentUser.uid];
 
-            onSnapshot(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'rides'), (snap) => {
-                if (!snap.empty) {
-                    rides = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(b.date) - new Date(a.date));
-                    saveLocalData();
-                    renderAllViews();
-                }
-            }, (err) => console.warn("Firestore listener warning:", err));
+            const unsubBikes = onSnapshot(collection(db, ...userPath, 'bikes'), (snap) => {
+                bikes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                saveLocalData();
+                updateBikeDropdowns();
+                renderAllViews();
+            }, (err) => console.warn("Firestore bikes listener:", err));
 
-            onSnapshot(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'components'), (snap) => {
-                if (!snap.empty) {
-                    components = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    saveLocalData();
-                    renderAllViews();
-                }
-            }, (err) => console.warn("Firestore listener warning:", err));
+            const unsubExpenses = onSnapshot(collection(db, ...userPath, 'expenses'), (snap) => {
+                expenses = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(b.date) - new Date(a.date));
+                saveLocalData();
+                renderAllViews();
+            }, (err) => console.warn("Firestore expenses listener:", err));
+
+            const unsubRides = onSnapshot(collection(db, ...userPath, 'rides'), (snap) => {
+                rides = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(b.date) - new Date(a.date));
+                saveLocalData();
+                renderAllViews();
+            }, (err) => console.warn("Firestore rides listener:", err));
+
+            const unsubComponents = onSnapshot(collection(db, ...userPath, 'components'), (snap) => {
+                components = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                saveLocalData();
+                renderAllViews();
+            }, (err) => console.warn("Firestore components listener:", err));
+
+            activeSnapshotUnsubscribers.push(unsubBikes, unsubExpenses, unsubRides, unsubComponents);
         }
 
         // =========================================================================
-        // FORM SUBMIT HANDLERS (OPSLAAN & BIJWERKEN)
+        // FORM SUBMIT HANDLERS
         // =========================================================================
         document.getElementById('form-add-bike')?.addEventListener('submit', async (e) => {
             e.preventDefault();
