@@ -200,7 +200,7 @@
                         <span class="text-[10px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 px-1.5 py-0.5 rounded border border-blue-500/20 dark:border-blue-500/30">PRO</span>
                     </div>
                     <span id="network-badge" class="inline-flex items-center gap-1.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
-                        <span id="network-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> <span id="network-text">Lokaal Geheugen</span>
+                        <span id="network-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> <span id="network-text">Verbinden...</span>
                     </span>
                 </div>
             </div>
@@ -227,8 +227,8 @@
 
                 <!-- Language Switcher -->
                 <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200 dark:border-slate-700/80 transition-colors">
-                    <button onclick="setLanguage('nl')" id="lang-btn-nl" class="px-2 py-1 text-xs font-bold rounded-lg text-white bg-blue-600 transition-colors shadow-sm">NL</button>
-                    <button onclick="setLanguage('en')" id="lang-btn-en" class="px-2 py-1 text-xs font-bold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">EN</button>
+                    <button onclick="setLanguage('nl')" id="lang-btn-nl" class="px-2 py-1 text-xs font-bold rounded-lg text-white bg-blue-600 transition-colors shadow-sm cursor-pointer">NL</button>
+                    <button onclick="setLanguage('en')" id="lang-btn-en" class="px-2 py-1 text-xs font-bold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">EN</button>
                 </div>
 
                 <!-- Google Drive Sync Button -->
@@ -239,11 +239,6 @@
                 <!-- Export CSV Button -->
                 <button onclick="exportDataCSV()" class="hidden md:flex text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 transition-all items-center gap-1.5 shadow-sm cursor-pointer">
                     <i class="ph-bold ph-export text-slate-500 dark:text-slate-400 text-sm"></i> <span data-i18n="export">Export</span>
-                </button>
-
-                <!-- PWA Install Button -->
-                <button id="pwa-install-btn" class="hidden text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 shadow-md shadow-blue-600/20 transition-all">
-                    <i class="ph-bold ph-download-simple"></i> <span data-i18n="install">Install App</span>
                 </button>
             </div>
         </div>
@@ -366,7 +361,7 @@
             </div>
         </div>
 
-        <!-- ================= TAB 2: RITTENLOGBOEK (RIDES LOG) ================= -->
+        <!-- ================= TAB 2: RITTENLOGBOEK ================= -->
         <div id="view-rides" class="tab-view space-y-6 hidden">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="pro-card p-5 lg:col-span-1">
@@ -409,7 +404,7 @@
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_notes">Notities / Route</label>
                             <input type="text" id="ride-notes" placeholder="Bijv. Avondrit rond het meer" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
                         </div>
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2">
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 cursor-pointer">
                             <i class="ph-bold ph-plus-circle text-lg"></i> <span data-i18n="btn_save_ride">Rit Opslaan & Teller Vernieuwen</span>
                         </button>
                     </form>
@@ -444,9 +439,9 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/80 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
                 <div>
                     <h3 class="text-lg font-bold text-slate-900 dark:text-white" data-i18n="components_title">Onderdeelslijtage & Levensduur</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400" data-i18n="components_sub">Volg de exacte kilometerstand van individuele fietsonderdelen</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400" data-i18n="components_sub">Volg de de kilometerstand van individuele onderdelen</p>
                 </div>
-                <button onclick="openAddComponentModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all">
+                <button onclick="openAddComponentModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer">
                     <i class="ph-bold ph-plus"></i> <span data-i18n="btn_add_component">Nieuw Onderdeel Monteren</span>
                 </button>
             </div>
@@ -486,7 +481,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_description">Omschrijving</label>
-                            <input type="text" id="exp-description" required placeholder="Bijv. KMC X11 Ketting + cassette reiniger" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                            <input type="text" id="exp-description" required placeholder="Bijv. Ketting, cassette reiniger" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
                         </div>
                         <div>
                             <div class="flex justify-between items-center mb-1">
@@ -498,7 +493,7 @@
                             </div>
                             <input type="number" id="exp-odometer" placeholder="Optioneel" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none disabled:opacity-40">
                         </div>
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2">
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 cursor-pointer">
                             <i class="ph-bold ph-floppy-disk text-lg"></i> <span data-i18n="btn_save_expense">Uitgave Opslaan</span>
                         </button>
                     </form>
@@ -654,10 +649,10 @@
                             Niet verbonden
                         </div>
                     </div>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-3">Koppel je Google account om `velometrics_backup.json` direct op je Drive op te slaan zonder bestanden handmatig te downloaden.</p>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-3">Koppel je Google account om `velometrics_backup.json` direct op je Drive op te slaan.</p>
                     
                     <div class="space-y-2">
-                        <input type="text" id="drive-client-id" placeholder="Google OAuth Client ID (Optioneel)" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs font-mono text-slate-800 dark:text-slate-200">
+                        <input type="text" id="drive-client-id" placeholder="Google OAuth Client ID" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs font-mono text-slate-800 dark:text-slate-200">
                         
                         <button onclick="initGoogleDriveAuth()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
                             <i class="ph-bold ph-google-logo"></i> Koppel met Google Account
@@ -708,13 +703,13 @@
     <!-- Application Code -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =========================================================================
-        // 🚨 FIREBASE CONFIGURATIE
+        // FIREBASE CONFIGURATIE (GEKOPPELD MET JOUW PROJECT)
         // =========================================================================
-        const customFirebaseConfig = {
+        const firebaseConfig = {
             apiKey: "AIzaSyCOAcmL6mtJnqp_GEjyR-kHDWgyDkQKVxU",
             authDomain: "velometrics-86d33.firebaseapp.com",
             projectId: "velometrics-86d33",
@@ -724,14 +719,7 @@
             measurementId: "G-X7CB3D6DW8"
         };
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'velometrics-pro-app';
-        let firebaseConfig = customFirebaseConfig;
-        try {
-            if (Object.keys(firebaseConfig).length === 0 && typeof __firebase_config !== 'undefined') {
-                firebaseConfig = JSON.parse(__firebase_config);
-            }
-        } catch (e) {}
-
+        const appId = 'velometrics-pro-app';
         let app, db, auth, currentUser;
         let useLocalStorage = false;
 
@@ -744,8 +732,13 @@
 
         const categories = ['Maintenance', 'Parts', 'Gear', 'Upgrades', 'Purchase', 'Insurance', 'Other'];
         const categoryColors = {
-            'Maintenance': '#f97316', 'Parts': '#06b6d4', 'Gear': '#8b5cf6',
-            'Upgrades': '#ec4899', 'Purchase': '#3b82f6', 'Insurance': '#10b981', 'Other': '#64748b'
+            'Maintenance': '#f97316', 
+            'Parts': '#06b6d4', 
+            'Gear': '#8b5cf6',
+            'Upgrades': '#ec4899', 
+            'Purchase': '#3b82f6', 
+            'Insurance': '#10b981', 
+            'Other': '#64748b'
         };
 
         let currentLang = localStorage.getItem('velometrics_lang') || 'nl';
@@ -753,7 +746,7 @@
 
         const translations = {
             nl: {
-                all_bikes: "Alle Fietsen", drive_sync: "Drive Sync", export: "Exporteren", install: "Installeren",
+                all_bikes: "Alle Fietsen", drive_sync: "Drive Sync", export: "Exporteren",
                 theme_system: "💻 Systeem", theme_dark: "🌙 Donker", theme_light: "☀️ Licht",
                 nav_dashboard: "Dashboard", nav_rides: "Ritten & Gebruik", nav_components: "Onderdelen & Slijtage",
                 nav_expenses: "Uitgaven & Kosten", nav_bikes: "Fietsen & TCO",
@@ -770,7 +763,7 @@
                 cat_Maintenance: "Onderhoud & Service", cat_Parts: "Onderdelen & Componenten", cat_Gear: "Accessoires & Kleding", cat_Upgrades: "Upgrades", cat_Purchase: "Aankoop Fiets", cat_Insurance: "Verzekering", cat_Other: "Overig"
             },
             en: {
-                all_bikes: "All Bikes", drive_sync: "Drive Sync", export: "Export CSV", install: "Install App",
+                all_bikes: "All Bikes", drive_sync: "Drive Sync", export: "Export CSV",
                 theme_system: "💻 System", theme_dark: "🌙 Dark", theme_light: "☀️ Light",
                 nav_dashboard: "Dashboard", nav_rides: "Rides & Usage", nav_components: "Components & Wear",
                 nav_expenses: "Expenses & Costs", nav_bikes: "Bikes & TCO",
@@ -788,7 +781,6 @@
             }
         };
 
-        // Global Helper Functions
         function applyTheme(theme) {
             currentTheme = theme;
             localStorage.setItem('velometrics_theme', theme);
@@ -879,7 +871,6 @@
             if (modal) modal.classList.remove('hidden');
         };
 
-        // Local Storage Management
         function saveLocalData() {
             localStorage.setItem('velometrics_local_db', JSON.stringify({ bikes, expenses, rides, components }));
         }
@@ -898,10 +889,9 @@
             renderAllViews();
         }
 
-        // Initialize App
         async function init() {
             applyTheme(currentTheme);
-            populateCategoryDropdown();
+            loadLocalData();
 
             const savedClientId = localStorage.getItem('velometrics_gdrive_client_id');
             if (savedClientId) {
@@ -922,24 +912,20 @@
                 }
             });
 
-            // Check if Firebase keys exist
             if (firebaseConfig && firebaseConfig.apiKey && firebaseConfig.projectId) {
                 try {
                     app = initializeApp(firebaseConfig);
                     db = getFirestore(app);
                     auth = getAuth(app);
 
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
+                    await signInAnonymously(auth);
 
                     onAuthStateChanged(auth, (user) => {
                         if (user) {
                             currentUser = user;
                             useLocalStorage = false;
-                            document.getElementById('network-text').innerText = "Firebase Cloud Sync";
+                            const badge = document.getElementById('network-text');
+                            if (badge) badge.innerText = "Firebase Cloud Sync";
                             document.getElementById('loading-overlay').style.display = 'none';
                             setupFirebaseListeners();
                             setLanguage(currentLang);
@@ -947,15 +933,14 @@
                     });
                     return;
                 } catch (err) {
-                    console.warn("Firebase verbinding mislukt, schakelt over naar LocalStorage:", err);
+                    console.warn("Firebase mislukt, schakelt over naar lokaal:", err);
                 }
             }
 
-            // Fallback: LocalStorage Mode
             useLocalStorage = true;
-            document.getElementById('network-text').innerText = "Lokaal Geheugen";
+            const badge = document.getElementById('network-text');
+            if (badge) badge.innerText = "Lokaal Geheugen";
             document.getElementById('loading-overlay').style.display = 'none';
-            loadLocalData();
             setLanguage(currentLang);
         }
 
@@ -963,28 +948,42 @@
             if (!currentUser || useLocalStorage) return;
 
             onSnapshot(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'bikes'), (snap) => {
-                bikes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                updateBikeDropdowns();
-                renderAllViews();
-            });
+                if (!snap.empty) {
+                    bikes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    saveLocalData();
+                    updateBikeDropdowns();
+                    renderAllViews();
+                }
+            }, (err) => console.warn("Firestore listener warning:", err));
 
             onSnapshot(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses'), (snap) => {
-                expenses = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(b.date) - new Date(a.date));
-                renderAllViews();
-            });
+                if (!snap.empty) {
+                    expenses = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(b.date) - new Date(a.date));
+                    saveLocalData();
+                    renderAllViews();
+                }
+            }, (err) => console.warn("Firestore listener warning:", err));
 
             onSnapshot(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'rides'), (snap) => {
-                rides = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(b.date) - new Date(a.date));
-                renderAllViews();
-            });
+                if (!snap.empty) {
+                    rides = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(b.date) - new Date(a.date));
+                    saveLocalData();
+                    renderAllViews();
+                }
+            }, (err) => console.warn("Firestore listener warning:", err));
 
             onSnapshot(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'components'), (snap) => {
-                components = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                renderAllViews();
-            });
+                if (!snap.empty) {
+                    components = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    saveLocalData();
+                    renderAllViews();
+                }
+            }, (err) => console.warn("Firestore listener warning:", err));
         }
 
-        // Form Submit Handlers
+        // =========================================================================
+        // FORMULIEREN (LOCAL-FIRST DIRECT OPSLAAN + CLOUD SYNC OP ACHTERGROND)
+        // =========================================================================
         document.getElementById('form-add-bike')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('bike-name').value;
@@ -993,20 +992,31 @@
             const purchasePrice = parseFloat(document.getElementById('bike-purchase-price').value) || 0;
             const resaleValue = parseFloat(document.getElementById('bike-resale-value').value) || 0;
 
-            const bikeObj = { name, type, startOdo, purchasePrice, resaleValue, createdAt: new Date().toISOString() };
+            const bikeObj = { 
+                id: 'bike_' + Date.now(), 
+                name, 
+                type, 
+                startOdo, 
+                purchasePrice, 
+                resaleValue, 
+                createdAt: new Date().toISOString() 
+            };
 
-            if (useLocalStorage) {
-                bikeObj.id = 'bike_' + Date.now();
-                bikes.push(bikeObj);
-                saveLocalData();
-                updateBikeDropdowns();
-                renderAllViews();
-            } else if (currentUser) {
-                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'bikes'), bikeObj);
-            }
+            bikes.push(bikeObj);
+            saveLocalData();
+            updateBikeDropdowns();
+            renderAllViews();
 
             e.target.reset();
             closeModal('modal-bike');
+
+            if (!useLocalStorage && currentUser && db) {
+                try {
+                    await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'bikes'), bikeObj);
+                } catch (err) {
+                    console.warn("Cloud sync fout bij fiets toevoegen:", err);
+                }
+            }
         });
 
         document.getElementById('form-ride')?.addEventListener('submit', async (e) => {
@@ -1018,32 +1028,44 @@
             const duration = parseInt(document.getElementById('ride-duration').value) || 0;
             const notes = document.getElementById('ride-notes').value;
 
-            const rideObj = { bikeId, date, distance, rideType, duration, notes, createdAt: new Date().toISOString() };
+            const rideObj = { 
+                id: 'ride_' + Date.now(), 
+                bikeId, 
+                date, 
+                distance, 
+                rideType, 
+                duration, 
+                notes, 
+                createdAt: new Date().toISOString() 
+            };
 
-            if (useLocalStorage) {
-                rideObj.id = 'ride_' + Date.now();
-                rides.unshift(rideObj);
+            rides.unshift(rideObj);
 
-                components.forEach(comp => {
-                    if (comp.bikeId === bikeId) {
-                        comp.currentKm = (comp.currentKm || 0) + distance;
-                    }
-                });
-
-                saveLocalData();
-                renderAllViews();
-            } else if (currentUser) {
-                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'rides'), rideObj);
-                const bikeComponents = components.filter(c => c.bikeId === bikeId);
-                for (const comp of bikeComponents) {
-                    await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'components', comp.id), {
-                        currentKm: (comp.currentKm || 0) + distance
-                    });
+            components.forEach(comp => {
+                if (comp.bikeId === bikeId) {
+                    comp.currentKm = (comp.currentKm || 0) + distance;
                 }
-            }
+            });
+
+            saveLocalData();
+            renderAllViews();
 
             e.target.reset();
             document.getElementById('ride-date').valueAsDate = new Date();
+
+            if (!useLocalStorage && currentUser && db) {
+                try {
+                    await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'rides'), rideObj);
+                    const bikeComponents = components.filter(c => c.bikeId === bikeId);
+                    for (const comp of bikeComponents) {
+                        await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'components', comp.id), {
+                            currentKm: comp.currentKm
+                        });
+                    }
+                } catch (err) {
+                    console.warn("Cloud sync fout bij rit opslaan:", err);
+                }
+            }
         });
 
         document.getElementById('form-expense')?.addEventListener('submit', async (e) => {
@@ -1057,19 +1079,31 @@
             const odoVal = document.getElementById('exp-odometer').value;
             const odometer = isUnknown || odoVal === '' ? null : parseInt(odoVal, 10);
 
-            const expObj = { bikeId, date, category, description, amount, odometer, createdAt: new Date().toISOString() };
+            const expObj = { 
+                id: 'exp_' + Date.now(), 
+                bikeId, 
+                date, 
+                category, 
+                description, 
+                amount, 
+                odometer, 
+                createdAt: new Date().toISOString() 
+            };
 
-            if (useLocalStorage) {
-                expObj.id = 'exp_' + Date.now();
-                expenses.unshift(expObj);
-                saveLocalData();
-                renderAllViews();
-            } else if (currentUser) {
-                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses'), expObj);
-            }
+            expenses.unshift(expObj);
+            saveLocalData();
+            renderAllViews();
 
             e.target.reset();
             document.getElementById('exp-date').valueAsDate = new Date();
+
+            if (!useLocalStorage && currentUser && db) {
+                try {
+                    await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses'), expObj);
+                } catch (err) {
+                    console.warn("Cloud sync fout bij uitgave opslaan:", err);
+                }
+            }
         });
 
         document.getElementById('form-add-component')?.addEventListener('submit', async (e) => {
@@ -1079,53 +1113,74 @@
             const category = document.getElementById('comp-category').value;
             const expectedLifespan = parseInt(document.getElementById('comp-lifespan').value) || 3000;
 
-            const compObj = { bikeId, name, category, expectedLifespan, currentKm: 0, createdAt: new Date().toISOString() };
+            const compObj = { 
+                id: 'comp_' + Date.now(), 
+                bikeId, 
+                name, 
+                category, 
+                expectedLifespan, 
+                currentKm: 0, 
+                createdAt: new Date().toISOString() 
+            };
 
-            if (useLocalStorage) {
-                compObj.id = 'comp_' + Date.now();
-                components.push(compObj);
-                saveLocalData();
-                renderAllViews();
-            } else if (currentUser) {
-                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'components'), compObj);
-            }
+            components.push(compObj);
+            saveLocalData();
+            renderAllViews();
 
             e.target.reset();
             closeModal('modal-component');
+
+            if (!useLocalStorage && currentUser && db) {
+                try {
+                    await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'components'), compObj);
+                } catch (err) {
+                    console.warn("Cloud sync fout bij onderdeel toevoegen:", err);
+                }
+            }
         });
 
         window.deleteRecord = (col, id) => {
             showMessageModal("Bevestig Verwijdering", "Weet je zeker dat je dit item wilt verwijderen?", true, async () => {
-                if (useLocalStorage) {
-                    if (col === 'bikes') bikes = bikes.filter(b => b.id !== id);
-                    if (col === 'expenses') expenses = expenses.filter(e => e.id !== id);
-                    if (col === 'rides') rides = rides.filter(r => r.id !== id);
-                    if (col === 'components') components = components.filter(c => c.id !== id);
-                    saveLocalData();
-                    updateBikeDropdowns();
-                    renderAllViews();
-                } else if (currentUser) {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, col, id));
+                if (col === 'bikes') bikes = bikes.filter(b => b.id !== id);
+                if (col === 'expenses') expenses = expenses.filter(e => e.id !== id);
+                if (col === 'rides') rides = rides.filter(r => r.id !== id);
+                if (col === 'components') components = components.filter(c => c.id !== id);
+                saveLocalData();
+                updateBikeDropdowns();
+                renderAllViews();
+
+                if (!useLocalStorage && currentUser && db) {
+                    try {
+                        await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, col, id));
+                    } catch (err) {
+                        console.warn("Cloud sync fout bij verwijderen:", err);
+                    }
                 }
             });
         };
 
         window.replaceComponent = (id) => {
             showMessageModal("Onderdeel Vervangen", "Dit zet de tellerstand van dit onderdeel terug naar 0 km. Ga door?", true, async () => {
-                if (useLocalStorage) {
-                    const comp = components.find(c => c.id === id);
-                    if (comp) comp.currentKm = 0;
-                    saveLocalData();
-                    renderAllViews();
-                } else if (currentUser) {
-                    await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'components', id), {
-                        currentKm: 0
-                    });
+                const comp = components.find(c => c.id === id);
+                if (comp) comp.currentKm = 0;
+                saveLocalData();
+                renderAllViews();
+
+                if (!useLocalStorage && currentUser && db) {
+                    try {
+                        await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'components', id), {
+                            currentKm: 0
+                        });
+                    } catch (err) {
+                        console.warn("Cloud sync fout bij component vervangen:", err);
+                    }
                 }
             });
         };
 
-        // Drive Sync & File Backup Functions
+        // =========================================================================
+        // GOOGLE DRIVE & LOKALE BACKUP
+        // =========================================================================
         window.exportLocalBackupJSON = function() {
             const backupObj = { bikes, expenses, rides, components, exportedAt: new Date().toISOString() };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupObj, null, 2));
@@ -1163,7 +1218,7 @@
         window.initGoogleDriveAuth = function() {
             const clientIdInput = document.getElementById('drive-client-id')?.value.trim();
             if (!clientIdInput) {
-                showMessageModal("OAuth Client ID Vereist", "Vul een geldige Google OAuth Client ID in of gebruik de Lokale Backup optie.");
+                showMessageModal("OAuth Client ID Vereist", "Vul een geldige Google OAuth Client ID in of gebruik de Lokale Bestand Backup optie.");
                 return;
             }
             localStorage.setItem('velometrics_gdrive_client_id', clientIdInput);
@@ -1220,9 +1275,9 @@
                         body: form
                     });
                 }
-                showMessageModal("Cloud Upload Gelukt", "Je gegevens zijn veilig opgeslagen op je Google Drive (`velometrics_backup.json`)!");
+                showMessageModal("Cloud Upload Gelukt", "Gegevens succesvol opgeslagen op je Google Drive (`velometrics_backup.json`)!");
             } catch (err) {
-                showMessageModal("Upload Fout", "Er ging iets mis bij het uploaden naar Google Drive: " + err.message);
+                showMessageModal("Upload Fout", "Uploaden naar Google Drive mislukt: " + err.message);
             }
         };
 
@@ -1253,9 +1308,9 @@
                 updateBikeDropdowns();
                 renderAllViews();
                 closeModal('modal-drive-sync');
-                showMessageModal("Cloud Download Gelukt", "Gegevens van Google Drive geïmporteerd!");
+                showMessageModal("Cloud Download Gelukt", "Gegevens succesvol vanuit Google Drive geïmporteerd!");
             } catch (err) {
-                showMessageModal("Download Fout", "Er ging iets mis bij het downloaden: " + err.message);
+                showMessageModal("Download Fout", "Downloaden van Google Drive mislukt: " + err.message);
             }
         };
 
@@ -1287,7 +1342,9 @@
             modal.classList.remove('hidden');
         };
 
-        // UI rendering functions
+        // =========================================================================
+        // WEERGAVE RENDERING & GRAFIEKEN (INCLUSIEF FIETSAANKOOP)
+        // =========================================================================
         function updateBikeDropdowns() {
             const filterSel = document.getElementById('global-bike-filter');
             const expBikeSel = document.getElementById('exp-bike-id');
@@ -1353,7 +1410,22 @@
             document.getElementById('kpi-cost-per-km').innerText = `€${costPerKm.toFixed(2)} / km`;
             document.getElementById('kpi-wear-alert-count').innerText = `${wearAlertsCount} onderdelen vereisen service`;
 
-            renderCharts(filteredExpenses);
+            // Voeg de aankoopwaarde van de fiets(en) toe aan de grafiekdata
+            const chartExpenses = [...filteredExpenses];
+            filteredBikes.forEach(b => {
+                if (b.purchasePrice && Number(b.purchasePrice) > 0) {
+                    const purchaseDate = b.createdAt ? b.createdAt.substring(0, 10) : new Date().toISOString().substring(0, 10);
+                    chartExpenses.push({
+                        bikeId: b.id,
+                        amount: Number(b.purchasePrice),
+                        category: 'Purchase',
+                        date: purchaseDate,
+                        description: `Aankoop ${b.name}`
+                    });
+                }
+            });
+
+            renderCharts(chartExpenses);
             renderWearAlerts(filteredComponents);
             renderRidesTable(filteredRides);
             renderComponentsGrid(filteredComponents);
@@ -1366,15 +1438,16 @@
             const textColor = isDark ? '#94a3b8' : '#475569';
             const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
 
+            // Groepeer uitgaven per maand
             const monthlyTotals = {};
-            [...expData].reverse().forEach(e => {
-                if(!e.date) return;
+            expData.forEach(e => {
+                if (!e.date) return;
                 const ym = e.date.substring(0, 7);
                 monthlyTotals[ym] = (monthlyTotals[ym] || 0) + e.amount;
             });
 
-            const timeLabels = Object.keys(monthlyTotals);
-            const timeValues = Object.values(monthlyTotals);
+            const timeLabels = Object.keys(monthlyTotals).sort();
+            const timeValues = timeLabels.map(k => monthlyTotals[k]);
 
             if (chartTimelineInstance) chartTimelineInstance.destroy();
             const ctx1 = document.getElementById('chart-timeline')?.getContext('2d');
@@ -1384,13 +1457,19 @@
                     data: {
                         labels: timeLabels,
                         datasets: [{
-                            label: 'Maandelijkse Uitgaven (€)', data: timeValues,
-                            borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.15)',
-                            fill: true, tension: 0.3, borderWidth: 2, pointBackgroundColor: '#3b82f6'
+                            label: 'Maandelijkse Uitgaven (€)', 
+                            data: timeValues,
+                            borderColor: '#3b82f6', 
+                            backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                            fill: true, 
+                            tension: 0.3, 
+                            borderWidth: 2, 
+                            pointBackgroundColor: '#3b82f6'
                         }]
                     },
                     options: {
-                        responsive: true, maintainAspectRatio: false,
+                        responsive: true, 
+                        maintainAspectRatio: false,
                         scales: {
                             x: { grid: { display: false }, ticks: { color: textColor } },
                             y: { grid: { color: gridColor }, ticks: { color: textColor }, beginAtZero: true }
@@ -1400,8 +1479,11 @@
                 });
             }
 
+            // Groepeer kosten per categorie
             const catTotals = {};
-            expData.forEach(e => { catTotals[e.category] = (catTotals[e.category] || 0) + e.amount; });
+            expData.forEach(e => { 
+                catTotals[e.category] = (catTotals[e.category] || 0) + e.amount; 
+            });
 
             const catKeys = Object.keys(catTotals);
             const catLabels = catKeys.map(k => window.getCatLabel(k));
@@ -1413,10 +1495,23 @@
             if (ctx2) {
                 chartCategoryInstance = new Chart(ctx2, {
                     type: 'doughnut',
-                    data: { labels: catLabels, datasets: [{ data: catValues, backgroundColor: catBg, borderWidth: 0 }] },
+                    data: { 
+                        labels: catLabels, 
+                        datasets: [{ 
+                            data: catValues, 
+                            backgroundColor: catBg, 
+                            borderWidth: 0 
+                        }] 
+                    },
                     options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { position: 'bottom', labels: { color: textColor, font: { size: 10 }, usePointStyle: true } } },
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        plugins: { 
+                            legend: { 
+                                position: 'bottom', 
+                                labels: { color: textColor, font: { size: 10 }, usePointStyle: true } 
+                            } 
+                        },
                         cutout: '70%'
                     }
                 });
