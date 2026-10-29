@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="nl" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VeloMetrics Pro - Advanced Bike Analytics & TCO Tracker</title>
 
     <!-- PWA & Mobile App Meta Tags -->
@@ -11,8 +11,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="VeloMetrics">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%232563eb'%3E%3Crect width='512' height='512' rx='128' fill='%230f172a'/%3E%3Cpath d='M160 368a80 80 0 1 0-80-80 80 80 0 0 0 80 80zm200 0a80 80 0 1 0-80-80 80 80 0 0 0 80 80z' stroke='%2338bdf8' stroke-width='28' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M160 288h72l48-88h88m-136 88l40-88m-64-48h56m120 48l40 88' stroke='%2338bdf8' stroke-width='28' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 
-    <!-- Google Identity Services SDK (Drive API) -->
+    <!-- Dynamisch Web App Manifest via Data-URI -->
+    <link rel="manifest" id="pwa-manifest-link">
+
+    <!-- Google Identity Services SDK (Google Drive) -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <!-- Tailwind CSS -->
@@ -48,6 +52,7 @@
             font-family: 'Inter', sans-serif; 
             background-color: #0b0f19;
             color: #f1f5f9;
+            -webkit-tap-highlight-color: transparent;
         }
 
         html.dark .bg-mesh {
@@ -60,7 +65,7 @@
         }
 
         html.dark .pro-card {
-            background: rgba(15, 23, 42, 0.75);
+            background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -68,16 +73,12 @@
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        html.dark .pro-card:hover {
-            border-color: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.4);
-        }
-
         /* Light Mode Styles */
         html.light body {
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
             color: #0f172a;
+            -webkit-tap-highlight-color: transparent;
         }
 
         html.light .bg-mesh {
@@ -90,22 +91,12 @@
         }
 
         html.light .pro-card {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(203, 213, 225, 0.8);
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        html.light .pro-card:hover {
-            border-color: rgba(148, 163, 184, 0.5);
-            box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.08);
-        }
-
-        html.light header {
-            background-color: rgba(255, 255, 255, 0.9) !important;
-            border-color: rgba(226, 232, 240, 0.8) !important;
         }
 
         select option {
@@ -118,29 +109,21 @@
             color: #0f172a;
         }
 
-        html.light .nav-tab {
-            color: #64748b;
-        }
-        html.light .nav-tab:hover {
-            color: #0f172a;
-            background-color: #f1f5f9;
-        }
-        html.light .nav-tab.active {
-            background: rgba(37, 99, 235, 0.1) !important;
-            color: #2563eb !important;
-            border-color: rgba(37, 99, 235, 0.3) !important;
-        }
-
         .nav-tab.active {
             background: rgba(37, 99, 235, 0.15);
             color: #3b82f6;
             border-color: rgba(59, 130, 246, 0.4);
         }
 
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        html.light .nav-tab.active {
+            background: rgba(37, 99, 235, 0.1) !important;
+            color: #2563eb !important;
+            border-color: rgba(37, 99, 235, 0.3) !important;
+        }
+
+        /* Voorkom scrollbar op tabs */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
         #loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -167,6 +150,11 @@
             if (modal) modal.classList.add('hidden');
         };
 
+        window.toggleMobileTools = function() {
+            const drawer = document.getElementById('mobile-tools-drawer');
+            if (drawer) drawer.classList.toggle('hidden');
+        };
+
         window.switchTab = function(tabName) {
             document.querySelectorAll('.tab-view').forEach(v => v.classList.add('hidden'));
             document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -175,237 +163,291 @@
             const targetTab = document.getElementById(`tab-${tabName}`);
             if (targetView) targetView.classList.remove('hidden');
             if (targetTab) targetTab.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         };
     </script>
 </head>
-<body class="antialiased min-h-screen bg-mesh flex flex-col selection:bg-blue-600 selection:text-white">
+<body class="antialiased min-h-screen bg-mesh flex flex-col selection:bg-blue-600 selection:text-white pb-12 sm:pb-6">
 
     <!-- Loading Overlay -->
     <div id="loading-overlay">
         <div class="spinner mb-4"></div>
-        <h2 class="text-sm font-bold uppercase tracking-widest text-slate-400">VeloMetrics Pro Laden...</h2>
+        <h2 class="text-xs font-bold uppercase tracking-widest text-slate-400">VeloMetrics Pro Laden...</h2>
     </div>
 
     <!-- Top Navigation Header -->
-    <header class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 transition-colors">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <!-- Brand Logo -->
-            <div class="flex items-center gap-3">
-                <div class="bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-xl p-2.5 shadow-lg shadow-blue-500/20 flex items-center justify-center">
-                    <i class="ph-bold ph-bicycle text-2xl"></i>
-                </div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <h1 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">VeloMetrics</h1>
-                        <span class="text-[10px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 px-1.5 py-0.5 rounded border border-blue-500/20 dark:border-blue-500/30">PRO</span>
+    <header class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 transition-colors shadow-sm">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="h-16 flex items-center justify-between gap-2">
+                
+                <!-- Brand Logo & Status -->
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-xl p-2 sm:p-2.5 shadow-md shadow-blue-500/20 flex-shrink-0 flex items-center justify-center">
+                        <i class="ph-bold ph-bicycle text-xl sm:text-2xl"></i>
                     </div>
-                    <span id="network-badge" class="inline-flex items-center gap-1.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
-                        <span id="network-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> <span id="network-text">Verbinden...</span>
-                    </span>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5">
+                            <h1 class="text-base sm:text-xl font-extrabold tracking-tight text-slate-900 dark:text-white truncate">VeloMetrics</h1>
+                            <span class="text-[9px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 px-1 py-0.5 rounded border border-blue-500/20">PRO</span>
+                        </div>
+                        <span id="network-badge" class="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400 truncate max-w-[170px] sm:max-w-none">
+                            <span id="network-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0"></span> 
+                            <span id="network-text" class="truncate">Verbinden...</span>
+                        </span>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Global Controls & Actions -->
-            <div class="flex items-center gap-2 sm:gap-3">
-                <!-- Google Authentication Profile / Button -->
-                <div id="auth-box" class="flex items-center">
-                    <button id="btn-login-google" onclick="loginWithGoogle()" class="text-xs font-semibold bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer">
-                        <i class="ph-bold ph-google-logo text-base text-red-500"></i>
-                        <span id="auth-btn-label">Inloggen met Google</span>
+                <!-- Right Actions -->
+                <div class="flex items-center gap-1.5 sm:gap-2.5">
+                    
+                    <!-- PWA Install Button -->
+                    <button id="pwa-install-btn" onclick="triggerPwaInstall()" class="hidden text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 sm:px-3 py-2 rounded-xl font-bold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition-all cursor-pointer">
+                        <i class="ph-bold ph-download-simple text-sm"></i> 
+                        <span class="hidden sm:inline" data-i18n="install">Installeer App</span>
                     </button>
-                    <div id="user-profile" class="hidden flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 py-1 px-2 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <img id="user-avatar" class="w-7 h-7 rounded-full border border-blue-500" src="" alt="Avatar">
-                        <span id="user-name" class="text-xs font-bold text-slate-800 dark:text-slate-200 hidden md:inline"></span>
-                        <button onclick="logoutUser()" title="Uitloggen" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer transition-colors">
-                            <i class="ph-bold ph-sign-out text-base"></i>
+
+                    <!-- Google Authentication Profile / Button -->
+                    <div id="auth-box" class="flex items-center">
+                        <button id="btn-login-google" onclick="loginWithGoogle()" class="text-xs font-semibold bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-2.5 sm:px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer min-h-[40px]">
+                            <i class="ph-bold ph-google-logo text-base text-red-500"></i>
+                            <span id="auth-btn-label" class="hidden sm:inline">Inloggen met Google</span>
+                            <span class="sm:hidden text-[11px] font-bold">Inloggen</span>
+                        </button>
+                        <div id="user-profile" class="hidden flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 py-1 px-2 rounded-xl border border-slate-200 dark:border-slate-700">
+                            <img id="user-avatar" class="w-7 h-7 rounded-full border border-blue-500 object-cover" src="" alt="Avatar">
+                            <span id="user-name" class="text-xs font-bold text-slate-800 dark:text-slate-200 hidden md:inline"></span>
+                            <button onclick="logoutUser()" title="Uitloggen" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer transition-colors">
+                                <i class="ph-bold ph-sign-out text-base"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Desktop Extra Actions -->
+                    <div class="hidden lg:flex items-center gap-2">
+                        <!-- Bike Selector -->
+                        <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700/80">
+                            <i class="ph-bold ph-funnel text-blue-500 dark:text-blue-400 text-xs"></i>
+                            <select id="global-bike-filter" class="bg-transparent text-xs font-semibold text-slate-700 dark:text-slate-200 border-none outline-none cursor-pointer">
+                                <option value="all" data-i18n="all_bikes">Alle Fietsen</option>
+                            </select>
+                        </div>
+
+                        <!-- Theme Switcher -->
+                        <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200 dark:border-slate-700/80">
+                            <select id="theme-selector" onchange="applyTheme(this.value)" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 border-none outline-none cursor-pointer px-1">
+                                <option value="dark" data-i18n="theme_dark">🌙 Donker</option>
+                                <option value="light" data-i18n="theme_light">☀️ Licht</option>
+                                <option value="system" data-i18n="theme_system">💻 Systeem</option>
+                            </select>
+                        </div>
+
+                        <!-- Language Switcher -->
+                        <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200 dark:border-slate-700/80">
+                            <button onclick="setLanguage('nl')" id="lang-btn-nl" class="px-2 py-1 text-xs font-bold rounded-lg text-white bg-blue-600 transition-colors shadow-sm cursor-pointer">NL</button>
+                            <button onclick="setLanguage('en')" id="lang-btn-en" class="px-2 py-1 text-xs font-bold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">EN</button>
+                        </div>
+
+                        <!-- Google Drive Sync Button -->
+                        <button onclick="openDriveSyncModal()" class="text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-3 py-2 rounded-xl border border-emerald-500/30 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer">
+                            <i class="ph-bold ph-google-drive-logo text-base"></i> <span data-i18n="drive_sync">Drive Sync</span>
+                        </button>
+
+                        <!-- Export CSV Button -->
+                        <button onclick="exportDataCSV()" class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer">
+                            <i class="ph-bold ph-export text-slate-500 dark:text-slate-400 text-sm"></i> <span data-i18n="export">Export</span>
                         </button>
                     </div>
+
+                    <!-- Mobile Menu Button (Hamburger) -->
+                    <button onclick="toggleMobileTools()" class="lg:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 cursor-pointer min-h-[40px] min-w-[40px] flex items-center justify-center">
+                        <i class="ph-bold ph-dots-three-vertical text-lg"></i>
+                    </button>
                 </div>
-
-                <!-- Bike Selector -->
-                <div class="hidden sm:flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700/80 transition-colors">
-                    <i class="ph-bold ph-funnel text-blue-500 dark:text-blue-400 text-xs"></i>
-                    <select id="global-bike-filter" class="bg-transparent text-xs font-semibold text-slate-700 dark:text-slate-200 border-none outline-none cursor-pointer">
-                        <option value="all" data-i18n="all_bikes">Alle Fietsen</option>
-                    </select>
-                </div>
-
-                <!-- Theme Switcher -->
-                <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700/80 transition-colors">
-                    <i class="ph-bold ph-circle-half text-blue-500 dark:text-blue-400 text-xs pl-1"></i>
-                    <select id="theme-selector" onchange="applyTheme(this.value)" class="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 border-none outline-none cursor-pointer">
-                        <option value="system" data-i18n="theme_system">💻 Systeem</option>
-                        <option value="dark" data-i18n="theme_dark">🌙 Donker</option>
-                        <option value="light" data-i18n="theme_light">☀️ Licht</option>
-                    </select>
-                </div>
-
-                <!-- Language Switcher -->
-                <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200 dark:border-slate-700/80 transition-colors">
-                    <button onclick="setLanguage('nl')" id="lang-btn-nl" class="px-2 py-1 text-xs font-bold rounded-lg text-white bg-blue-600 transition-colors shadow-sm cursor-pointer">NL</button>
-                    <button onclick="setLanguage('en')" id="lang-btn-en" class="px-2 py-1 text-xs font-bold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">EN</button>
-                </div>
-
-                <!-- Google Drive Sync Button -->
-                <button onclick="openDriveSyncModal()" class="text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-3 py-2 rounded-xl border border-emerald-500/30 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer">
-                    <i class="ph-bold ph-google-drive-logo text-base"></i> <span data-i18n="drive_sync">Drive Sync</span>
-                </button>
-
-                <!-- Export CSV Button -->
-                <button onclick="exportDataCSV()" class="hidden md:flex text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 transition-all items-center gap-1.5 shadow-sm cursor-pointer">
-                    <i class="ph-bold ph-export text-slate-500 dark:text-slate-400 text-sm"></i> <span data-i18n="export">Export</span>
-                </button>
             </div>
-        </div>
 
-        <!-- Main Navigation Tabs -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-200 dark:border-slate-800/80">
-            <nav class="flex space-x-1 sm:space-x-2 overflow-x-auto py-2 no-scrollbar" id="nav-tabs">
-                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="nav-tab active px-3.5 py-2 rounded-xl text-xs font-bold border border-transparent transition-all flex items-center gap-2 whitespace-nowrap text-slate-300 hover:text-white">
-                    <i class="ph-bold ph-chart-line-up text-base"></i> <span data-i18n="nav_dashboard">Dashboard</span>
-                </button>
-                <button onclick="switchTab('rides')" id="tab-rides" class="nav-tab px-3.5 py-2 rounded-xl text-xs font-bold border border-transparent transition-all flex items-center gap-2 whitespace-nowrap text-slate-400 hover:text-white">
-                    <i class="ph-bold ph-path text-base"></i> <span data-i18n="nav_rides">Ritten & Gebruik</span>
-                </button>
-                <button onclick="switchTab('components')" id="tab-components" class="nav-tab px-3.5 py-2 rounded-xl text-xs font-bold border border-transparent transition-all flex items-center gap-2 whitespace-nowrap text-slate-400 hover:text-white">
-                    <i class="ph-bold ph-wrench text-base"></i> <span data-i18n="nav_components">Onderdelen & Slijtage</span>
-                </button>
-                <button onclick="switchTab('expenses')" id="tab-expenses" class="nav-tab px-3.5 py-2 rounded-xl text-xs font-bold border border-transparent transition-all flex items-center gap-2 whitespace-nowrap text-slate-400 hover:text-white">
-                    <i class="ph-bold ph-receipt text-base"></i> <span data-i18n="nav_expenses">Uitgaven & Kosten</span>
-                </button>
-                <button onclick="switchTab('bikes')" id="tab-bikes" class="nav-tab px-3.5 py-2 rounded-xl text-xs font-bold border border-transparent transition-all flex items-center gap-2 whitespace-nowrap text-slate-400 hover:text-white">
-                    <i class="ph-bold ph-bicycle text-base"></i> <span data-i18n="nav_bikes">Fietsen & TCO</span>
-                </button>
-            </nav>
+            <!-- Mobile Tools Drawer (Inklapbaar menu op telefoons) -->
+            <div id="mobile-tools-drawer" class="hidden lg:hidden border-t border-slate-200 dark:border-slate-800/80 py-3 space-y-2.5">
+                <div class="grid grid-cols-2 gap-2">
+                    <!-- Mobile Bike Filter -->
+                    <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 col-span-2">
+                        <i class="ph-bold ph-bicycle text-blue-500 text-sm"></i>
+                        <select id="global-bike-filter-mobile" onchange="syncBikeFilter(this.value)" class="w-full bg-transparent text-xs font-bold text-slate-800 dark:text-slate-200 outline-none">
+                            <option value="all">Alle Fietsen</option>
+                        </select>
+                    </div>
+
+                    <!-- Theme Switcher Mobile -->
+                    <button onclick="toggleThemeQuick()" class="flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                        <i class="ph-bold ph-sun-dim text-amber-500 text-base"></i> <span id="mobile-theme-text">Thema Wisselen</span>
+                    </button>
+
+                    <!-- Language Switcher Mobile -->
+                    <button onclick="toggleLangQuick()" class="flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                        <i class="ph-bold ph-translate text-blue-500 text-base"></i> <span id="mobile-lang-text">Taal: NL</span>
+                    </button>
+
+                    <!-- Backup / Drive Sync Button Mobile -->
+                    <button onclick="openDriveSyncModal(); toggleMobileTools();" class="flex items-center justify-center gap-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 p-2.5 rounded-xl border border-emerald-500/30 text-xs font-bold">
+                        <i class="ph-bold ph-cloud-arrow-up text-base"></i> Drive & Backup
+                    </button>
+
+                    <!-- Export Button Mobile -->
+                    <button onclick="exportDataCSV(); toggleMobileTools();" class="flex items-center justify-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                        <i class="ph-bold ph-file-csv text-base text-purple-500"></i> Exporteer CSV
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Navigation Tabs -->
+            <div class="border-t border-slate-200 dark:border-slate-800/80">
+                <nav class="flex space-x-1 sm:space-x-2 overflow-x-auto py-2 no-scrollbar" id="nav-tabs">
+                    <button onclick="switchTab('dashboard')" id="tab-dashboard" class="nav-tab active px-3 py-2 rounded-xl text-xs font-bold border border-transparent transition-all flex items-center gap-1.5 whitespace-nowrap text-slate-300 hover:text-white min-h-[38px]">
+                        <i class="ph-bold ph-chart-line-up text-base"></i> <span data-i18n="nav_dashboard">Dashboard</span>
+                    </button>
+                    <button onclick="switchTab('rides')" id="tab-rides" class="nav-tab px-3 py-2 rounded-xl text-xs font-bold border border-transparent transition-all flex items-center gap-1.5 whitespace-nowrap text-slate-400 hover:text-white min-h-[38px]">
+                        <i class="ph-bold ph-path text-base"></i> <span data-i18n="nav_rides">Ritten</span>
+                    </button>
+                    <button onclick="switchTab('components')" id="tab-components" class="nav-tab px-3 py-2 rounded-xl text-xs font-bold border border-transparent transition-all flex items-center gap-1.5 whitespace-nowrap text-slate-400 hover:text-white min-h-[38px]">
+                        <i class="ph-bold ph-wrench text-base"></i> <span data-i18n="nav_components">Onderdelen</span>
+                    </button>
+                    <button onclick="switchTab('expenses')" id="tab-expenses" class="nav-tab px-3 py-2 rounded-xl text-xs font-bold border border-transparent transition-all flex items-center gap-1.5 whitespace-nowrap text-slate-400 hover:text-white min-h-[38px]">
+                        <i class="ph-bold ph-receipt text-base"></i> <span data-i18n="nav_expenses">Uitgaven</span>
+                    </button>
+                    <button onclick="switchTab('bikes')" id="tab-bikes" class="nav-tab px-3 py-2 rounded-xl text-xs font-bold border border-transparent transition-all flex items-center gap-1.5 whitespace-nowrap text-slate-400 hover:text-white min-h-[38px]">
+                        <i class="ph-bold ph-bicycle text-base"></i> <span data-i18n="nav_bikes">Fietsen & TCO</span>
+                    </button>
+                </nav>
+            </div>
         </div>
     </header>
 
     <!-- App Content Wrapper -->
-    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
+    <main class="flex-grow max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 w-full">
 
         <!-- ================= TAB 1: DASHBOARD OVERVIEW ================= -->
-        <div id="view-dashboard" class="tab-view space-y-6">
+        <div id="view-dashboard" class="tab-view space-y-5">
             
             <!-- Summary KPI Cards Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="pro-card p-5 border-l-4 border-l-blue-500 flex justify-between items-start">
-                    <div>
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400" data-i18n="kpi_tco">Netto TCO (Totale Kosten)</p>
-                        <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-1" id="kpi-net-tco">€0.00</h3>
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1" id="kpi-tco-sub">Aankoop + Kosten - Restwaarde</p>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div class="pro-card p-3.5 sm:p-5 border-l-4 border-l-blue-500 flex justify-between items-start">
+                    <div class="min-w-0">
+                        <p class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 truncate" data-i18n="kpi_tco">Netto TCO</p>
+                        <h3 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 truncate" id="kpi-net-tco">€0.00</h3>
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 hidden sm:block truncate" id="kpi-tco-sub">Aankoop + Kosten - Restwaarde</p>
                     </div>
-                    <div class="p-3 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-500/20">
-                        <i class="ph-bold ph-calculator text-2xl"></i>
-                    </div>
-                </div>
-
-                <div class="pro-card p-5 border-l-4 border-l-emerald-500 flex justify-between items-start">
-                    <div>
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400" data-i18n="kpi_maintenance">Onderhoud & Onderdelen</p>
-                        <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-1" id="kpi-maintenance-spent">€0.00</h3>
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1" id="kpi-maint-sub">Directe service uitgaven</p>
-                    </div>
-                    <div class="p-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-500/20">
-                        <i class="ph-bold ph-wrench text-2xl"></i>
+                    <div class="p-2 sm:p-3 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-500/20 flex-shrink-0">
+                        <i class="ph-bold ph-calculator text-lg sm:text-2xl"></i>
                     </div>
                 </div>
 
-                <div class="pro-card p-5 border-l-4 border-l-purple-500 flex justify-between items-start">
-                    <div>
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400" data-i18n="kpi_distance">Totale Afstand</p>
-                        <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-1" id="kpi-total-distance">0 km</h3>
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1" id="kpi-rides-count">0 ritten geregistreerd</p>
+                <div class="pro-card p-3.5 sm:p-5 border-l-4 border-l-emerald-500 flex justify-between items-start">
+                    <div class="min-w-0">
+                        <p class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 truncate" data-i18n="kpi_maintenance">Onderhoud</p>
+                        <h3 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 truncate" id="kpi-maintenance-spent">€0.00</h3>
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 hidden sm:block truncate">Directe service uitgaven</p>
                     </div>
-                    <div class="p-3 bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-xl border border-purple-500/20">
-                        <i class="ph-bold ph-path text-2xl"></i>
+                    <div class="p-2 sm:p-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-500/20 flex-shrink-0">
+                        <i class="ph-bold ph-wrench text-lg sm:text-2xl"></i>
                     </div>
                 </div>
 
-                <div class="pro-card p-5 border-l-4 border-l-amber-500 flex justify-between items-start">
-                    <div>
-                        <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400" data-i18n="kpi_cost_km">Netto Kost per Kilometer</p>
-                        <h3 class="text-2xl font-black text-slate-900 dark:text-white mt-1" id="kpi-cost-per-km">€0.00 / km</h3>
-                        <p class="text-[11px] text-amber-600 dark:text-amber-400 mt-1 font-semibold" id="kpi-wear-alert-count">0 onderdelen vereisen service</p>
+                <div class="pro-card p-3.5 sm:p-5 border-l-4 border-l-purple-500 flex justify-between items-start">
+                    <div class="min-w-0">
+                        <p class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 truncate" data-i18n="kpi_distance">Afstand</p>
+                        <h3 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 truncate" id="kpi-total-distance">0 km</h3>
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 hidden sm:block truncate" id="kpi-rides-count">0 ritten</p>
                     </div>
-                    <div class="p-3 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-500/20">
-                        <i class="ph-bold ph-gauge text-2xl"></i>
+                    <div class="p-2 sm:p-3 bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-xl border border-purple-500/20 flex-shrink-0">
+                        <i class="ph-bold ph-path text-lg sm:text-2xl"></i>
+                    </div>
+                </div>
+
+                <div class="pro-card p-3.5 sm:p-5 border-l-4 border-l-amber-500 flex justify-between items-start">
+                    <div class="min-w-0">
+                        <p class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 truncate" data-i18n="kpi_cost_km">Kost / km</p>
+                        <h3 class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 truncate" id="kpi-cost-per-km">€0.00 / km</h3>
+                        <p class="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5 font-semibold hidden sm:block truncate" id="kpi-wear-alert-count">0 alerts</p>
+                    </div>
+                    <div class="p-2 sm:p-3 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-500/20 flex-shrink-0">
+                        <i class="ph-bold ph-gauge text-lg sm:text-2xl"></i>
                     </div>
                 </div>
             </div>
 
             <!-- Dashboard Analytics Charts -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 pro-card p-5">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            <i class="ph-bold ph-chart-line text-blue-500 dark:text-blue-400 text-lg"></i>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                <div class="lg:col-span-2 pro-card p-4 sm:p-5">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <i class="ph-bold ph-chart-line text-blue-500 text-base"></i>
                             <span data-i18n="chart_timeline_title">Maandelijkse Uitgaven Trend</span>
                         </h3>
                     </div>
-                    <div class="h-64 relative">
+                    <div class="h-60 sm:h-64 relative">
                         <canvas id="chart-timeline"></canvas>
                     </div>
                 </div>
 
-                <div class="pro-card p-5">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            <i class="ph-bold ph-chart-pie text-blue-500 dark:text-blue-400 text-lg"></i>
+                <div class="pro-card p-4 sm:p-5">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <i class="ph-bold ph-chart-pie text-blue-500 text-base"></i>
                             <span data-i18n="chart_category_title">Kosten Verdeling</span>
                         </h3>
                     </div>
-                    <div class="h-64 relative flex justify-center">
+                    <div class="h-60 sm:h-64 relative flex justify-center">
                         <canvas id="chart-category"></canvas>
                     </div>
                 </div>
             </div>
 
             <!-- Component Maintenance Alerts Widget -->
-            <div class="pro-card p-5">
-                <div class="flex justify-between items-center mb-4 border-b border-slate-200 dark:border-slate-800 pb-3">
-                    <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <i class="ph-bold ph-warning text-amber-500 dark:text-amber-400 text-lg"></i>
-                        <span data-i18n="maint_alerts_title">Slijtage & Onderhoudswaarschuwingen</span>
+            <div class="pro-card p-4 sm:p-5">
+                <div class="flex justify-between items-center mb-3 border-b border-slate-200 dark:border-slate-800 pb-2.5">
+                    <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <i class="ph-bold ph-warning text-amber-500 text-base"></i>
+                        <span data-i18n="maint_alerts_title">Slijtage & Service Alerts</span>
                     </h3>
-                    <button onclick="switchTab('components')" class="text-xs text-blue-600 dark:text-blue-400 hover:underline font-semibold flex items-center gap-1">
-                        <span data-i18n="view_all_components">Bekijk alle onderdelen</span> <i class="ph-bold ph-arrow-right"></i>
+                    <button onclick="switchTab('components')" class="text-xs text-blue-600 dark:text-blue-400 hover:underline font-semibold flex items-center gap-1 cursor-pointer">
+                        <span data-i18n="view_all_components">Alle onderdelen</span> <i class="ph-bold ph-arrow-right"></i>
                     </button>
                 </div>
-                <div id="dashboard-wear-alerts" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div id="dashboard-wear-alerts" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 </div>
             </div>
         </div>
 
         <!-- ================= TAB 2: RITTENLOGBOEK ================= -->
-        <div id="view-rides" class="tab-view space-y-6 hidden">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="pro-card p-5 lg:col-span-1">
-                    <h3 class="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-                        <i class="ph-bold ph-plus-circle text-blue-500 dark:text-blue-400 text-lg"></i> 
+        <div id="view-rides" class="tab-view space-y-5 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                <!-- Rit Registreren Formulier -->
+                <div class="pro-card p-4 sm:p-5 lg:col-span-1">
+                    <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white mb-3.5 flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2.5">
+                        <i class="ph-bold ph-plus-circle text-blue-500 text-lg"></i> 
                         <span id="heading-ride-form" data-i18n="log_ride_title">Rit Registreren</span>
                     </h3>
-                    <form id="form-ride" class="space-y-4">
+                    <form id="form-ride" class="space-y-3.5">
                         <input type="hidden" id="ride-edit-id" value="">
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_bike">Fiets</label>
-                            <select id="ride-bike-id" required class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                            <select id="ride-bike-id" required class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none min-h-[44px]">
                                 <option value="" disabled selected data-i18n="select_bike">Selecteer fiets...</option>
                             </select>
                         </div>
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-2 gap-2.5">
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_date">Datum</label>
-                                <input type="date" id="ride-date" required class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                                <input type="date" id="ride-date" required class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none min-h-[44px]">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_distance">Afstand (km)</label>
-                                <input type="number" id="ride-distance" min="0.1" step="0.1" required placeholder="45.5" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                                <input type="number" id="ride-distance" inputmode="decimal" min="0.1" step="0.1" required placeholder="45.5" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none min-h-[44px]">
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-2 gap-2.5">
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_ride_type">Type Rit</label>
-                                <select id="ride-type" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                                <select id="ride-type" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none min-h-[44px]">
                                     <option value="Commute" data-i18n="type_commute">Woon-werk</option>
                                     <option value="Sport" data-i18n="type_sport">Sport / Training</option>
                                     <option value="Leisure" data-i18n="type_leisure">Recreatie</option>
@@ -413,43 +455,48 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_duration">Duur (minuten)</label>
-                                <input type="number" id="ride-duration" placeholder="90" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_duration">Duur (min)</label>
+                                <input type="number" id="ride-duration" inputmode="numeric" placeholder="90" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none min-h-[44px]">
                             </div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_notes">Notities / Route</label>
-                            <input type="text" id="ride-notes" placeholder="Bijv. Avondrit rond het meer" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                            <input type="text" id="ride-notes" placeholder="Bijv. Avondrit rond het meer" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none min-h-[44px]">
                         </div>
-                        <div class="flex gap-2">
-                            <button type="button" id="btn-cancel-ride" onclick="cancelRideEdit()" class="hidden bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-3 px-4 rounded-xl text-xs transition-all cursor-pointer">
+                        <div class="flex gap-2 pt-1">
+                            <button type="button" id="btn-cancel-ride" onclick="cancelRideEdit()" class="hidden bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-3 px-4 rounded-xl text-xs transition-all cursor-pointer min-h-[44px]">
                                 Annuleren
                             </button>
-                            <button type="submit" id="btn-save-ride-el" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 cursor-pointer">
-                                <i class="ph-bold ph-plus-circle text-lg"></i> <span id="btn-ride-text" data-i18n="btn_save_ride">Rit Opslaan & Teller Vernieuwen</span>
+                            <button type="submit" id="btn-save-ride-el" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-md shadow-blue-600/30 flex items-center justify-center gap-2 cursor-pointer min-h-[44px]">
+                                <i class="ph-bold ph-plus-circle text-lg"></i> <span id="btn-ride-text" data-i18n="btn_save_ride">Rit Opslaan</span>
                             </button>
                         </div>
                     </form>
                 </div>
 
-                <div class="pro-card p-5 lg:col-span-2 overflow-hidden">
-                    <h3 class="text-base font-bold text-slate-900 dark:text-white mb-4 border-b border-slate-200 dark:border-slate-800 pb-3 flex justify-between items-center">
-                        <span class="flex items-center gap-2"><i class="ph-bold ph-list-dashes text-blue-500 dark:text-blue-400"></i> <span data-i18n="rides_history_title">Geregistreerde Ritten</span></span>
+                <!-- Rittenhistorie: Desktop Table & Mobile Cards -->
+                <div class="pro-card p-4 sm:p-5 lg:col-span-2 overflow-hidden">
+                    <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white mb-3.5 border-b border-slate-200 dark:border-slate-800 pb-2.5 flex justify-between items-center">
+                        <span class="flex items-center gap-2"><i class="ph-bold ph-list-dashes text-blue-500"></i> <span data-i18n="rides_history_title">Geregistreerde Ritten</span></span>
                     </h3>
-                    <div class="overflow-x-auto max-h-[450px]">
+
+                    <!-- Mobile Cards View -->
+                    <div id="rides-mobile-list" class="block md:hidden space-y-3 max-h-[500px] overflow-y-auto pr-1"></div>
+
+                    <!-- Desktop Table View -->
+                    <div class="hidden md:block overflow-x-auto max-h-[450px]">
                         <table class="w-full text-left text-sm text-slate-700 dark:text-slate-300">
                             <thead class="bg-slate-100 dark:bg-slate-900/90 text-slate-600 dark:text-slate-400 text-xs uppercase font-bold sticky top-0 border-b border-slate-200 dark:border-slate-800">
                                 <tr>
-                                    <th class="p-3" data-i18n="th_date">Datum</th>
-                                    <th class="p-3" data-i18n="th_bike">Fiets</th>
-                                    <th class="p-3" data-i18n="th_type">Type</th>
-                                    <th class="p-3 text-right" data-i18n="th_distance">Afstand</th>
-                                    <th class="p-3 text-right" data-i18n="th_duration">Duur</th>
-                                    <th class="p-3 text-center" data-i18n="th_action">Actie</th>
+                                    <th class="p-3">Datum</th>
+                                    <th class="p-3">Fiets</th>
+                                    <th class="p-3">Type</th>
+                                    <th class="p-3 text-right">Afstand</th>
+                                    <th class="p-3 text-right">Duur</th>
+                                    <th class="p-3 text-center">Actie</th>
                                 </tr>
                             </thead>
-                            <tbody id="table-rides-body" class="divide-y divide-slate-200 dark:divide-slate-800">
-                            </tbody>
+                            <tbody id="table-rides-body" class="divide-y divide-slate-200 dark:divide-slate-800"></tbody>
                         </table>
                     </div>
                 </div>
@@ -457,96 +504,102 @@
         </div>
 
         <!-- ================= TAB 3: ONDERDELEN & SLIJTAGE ================= -->
-        <div id="view-components" class="tab-view space-y-6 hidden">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/80 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+        <div id="view-components" class="tab-view space-y-5 hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white/80 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
                 <div>
-                    <h3 class="text-lg font-bold text-slate-900 dark:text-white" data-i18n="components_title">Onderdeelslijtage & Levensduur</h3>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white" data-i18n="components_title">Onderdeelslijtage & Levensduur</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400" data-i18n="components_sub">Volg de kilometerstand van individuele onderdelen</p>
                 </div>
-                <button onclick="openAddComponentModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer">
+                <button onclick="openAddComponentModal()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer min-h-[44px]">
                     <i class="ph-bold ph-plus"></i> <span data-i18n="btn_add_component">Nieuw Onderdeel Monteren</span>
                 </button>
             </div>
 
-            <div id="components-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div id="components-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             </div>
         </div>
 
         <!-- ================= TAB 4: UITGAVEN & KOSTEN ================= -->
-        <div id="view-expenses" class="tab-view space-y-6 hidden">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="pro-card p-5 lg:col-span-1">
-                    <h3 class="text-base font-bold text-slate-900 dark:text-white mb-4 border-b border-slate-200 dark:border-slate-800 pb-3 flex items-center gap-2">
-                        <i class="ph-bold ph-plus-circle text-blue-500 dark:text-blue-400"></i> 
+        <div id="view-expenses" class="tab-view space-y-5 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                <!-- Uitgave Loggen Formulier -->
+                <div class="pro-card p-4 sm:p-5 lg:col-span-1">
+                    <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white mb-3.5 border-b border-slate-200 dark:border-slate-800 pb-2.5 flex items-center gap-2">
+                        <i class="ph-bold ph-plus-circle text-blue-500"></i> 
                         <span id="heading-expense-form" data-i18n="expense_form_title">Uitgave Loggen</span>
                     </h3>
-                    <form id="form-expense" class="space-y-4">
+                    <form id="form-expense" class="space-y-3.5">
                         <input type="hidden" id="exp-edit-id" value="">
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_bike">Fiets</label>
-                            <select id="exp-bike-id" required class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                            <select id="exp-bike-id" required class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none min-h-[44px]">
                                 <option value="" disabled selected data-i18n="select_bike">Selecteer fiets...</option>
                             </select>
                         </div>
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-2 gap-2.5">
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_date">Datum</label>
-                                <input type="date" id="exp-date" required class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                                <input type="date" id="exp-date" required class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none min-h-[44px]">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_amount">Bedrag (€)</label>
-                                <input type="number" id="exp-amount" min="0" step="0.01" required placeholder="49.95" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                                <input type="number" id="exp-amount" inputmode="decimal" min="0" step="0.01" required placeholder="49.95" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none min-h-[44px]">
                             </div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_category">Categorie</label>
-                            <select id="exp-category" required class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                            <select id="exp-category" required class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none min-h-[44px]">
                             </select>
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_description">Omschrijving</label>
-                            <input type="text" id="exp-description" required placeholder="Bijv. Ketting, cassette reiniger" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                            <input type="text" id="exp-description" required placeholder="Bijv. Ketting, cassette reiniger" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none min-h-[44px]">
                         </div>
                         <div>
                             <div class="flex justify-between items-center mb-1">
                                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400" data-i18n="label_odometer">Tellerstand (km)</label>
-                                <label class="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 cursor-pointer hover:text-slate-900 dark:hover:text-white">
+                                <label class="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 cursor-pointer">
                                     <input type="checkbox" id="exp-odo-unknown" class="rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-blue-600">
                                     <span data-i18n="label_unknown">Onbekend</span>
                                 </label>
                             </div>
-                            <input type="number" id="exp-odometer" placeholder="Optioneel" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none disabled:opacity-40">
+                            <input type="number" id="exp-odometer" inputmode="numeric" placeholder="Optioneel" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none disabled:opacity-40 min-h-[44px]">
                         </div>
-                        <div class="flex gap-2">
-                            <button type="button" id="btn-cancel-expense" onclick="cancelExpenseEdit()" class="hidden bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-3 px-4 rounded-xl text-xs transition-all cursor-pointer">
+                        <div class="flex gap-2 pt-1">
+                            <button type="button" id="btn-cancel-expense" onclick="cancelExpenseEdit()" class="hidden bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-3 px-4 rounded-xl text-xs transition-all cursor-pointer min-h-[44px]">
                                 Annuleren
                             </button>
-                            <button type="submit" id="btn-save-expense-el" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 cursor-pointer">
+                            <button type="submit" id="btn-save-expense-el" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-md shadow-blue-600/30 flex items-center justify-center gap-2 cursor-pointer min-h-[44px]">
                                 <i class="ph-bold ph-floppy-disk text-lg"></i> <span id="btn-expense-text" data-i18n="btn_save_expense">Uitgave Opslaan</span>
                             </button>
                         </div>
                     </form>
                 </div>
 
-                <div class="pro-card p-5 lg:col-span-2 overflow-hidden">
-                    <h3 class="text-base font-bold text-slate-900 dark:text-white mb-4 border-b border-slate-200 dark:border-slate-800 pb-3 flex justify-between items-center">
-                        <span class="flex items-center gap-2"><i class="ph-bold ph-receipt text-blue-500 dark:text-blue-400"></i> <span data-i18n="expense_history_title">Uitgavenhistorie</span></span>
+                <!-- Uitgavenhistorie: Desktop Table & Mobile Cards -->
+                <div class="pro-card p-4 sm:p-5 lg:col-span-2 overflow-hidden">
+                    <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white mb-3.5 border-b border-slate-200 dark:border-slate-800 pb-2.5 flex justify-between items-center">
+                        <span class="flex items-center gap-2"><i class="ph-bold ph-receipt text-blue-500"></i> <span data-i18n="expense_history_title">Uitgavenhistorie</span></span>
                     </h3>
-                    <div class="overflow-x-auto max-h-[500px]">
+
+                    <!-- Mobile Cards View -->
+                    <div id="expenses-mobile-list" class="block md:hidden space-y-3 max-h-[500px] overflow-y-auto pr-1"></div>
+
+                    <!-- Desktop Table View -->
+                    <div class="hidden md:block overflow-x-auto max-h-[500px]">
                         <table class="w-full text-left text-sm text-slate-700 dark:text-slate-300 whitespace-nowrap">
                             <thead class="bg-slate-100 dark:bg-slate-900/90 text-slate-600 dark:text-slate-400 text-xs uppercase font-bold sticky top-0 border-b border-slate-200 dark:border-slate-800">
                                 <tr>
-                                    <th class="p-3" data-i18n="th_date">Datum</th>
-                                    <th class="p-3" data-i18n="th_bike">Fiets</th>
-                                    <th class="p-3" data-i18n="th_category">Categorie</th>
-                                    <th class="p-3" data-i18n="th_desc">Omschrijving</th>
-                                    <th class="p-3 text-right" data-i18n="th_odo">Tellerstand</th>
-                                    <th class="p-3 text-right" data-i18n="th_amount">Bedrag</th>
-                                    <th class="p-3 text-center" data-i18n="th_action">Actie</th>
+                                    <th class="p-3">Datum</th>
+                                    <th class="p-3">Fiets</th>
+                                    <th class="p-3">Categorie</th>
+                                    <th class="p-3">Omschrijving</th>
+                                    <th class="p-3 text-right">Km-stand</th>
+                                    <th class="p-3 text-right">Bedrag</th>
+                                    <th class="p-3 text-center">Actie</th>
                                 </tr>
                             </thead>
-                            <tbody id="table-expenses-body" class="divide-y divide-slate-200 dark:divide-slate-800">
-                            </tbody>
+                            <tbody id="table-expenses-body" class="divide-y divide-slate-200 dark:divide-slate-800"></tbody>
                         </table>
                     </div>
                 </div>
@@ -554,43 +607,43 @@
         </div>
 
         <!-- ================= TAB 5: FIETSEN & TCO PROFIEL ================= -->
-        <div id="view-bikes" class="tab-view space-y-6 hidden">
-            <div class="flex justify-between items-center bg-white/80 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+        <div id="view-bikes" class="tab-view space-y-5 hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white/80 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
                 <div>
-                    <h3 class="text-lg font-bold text-slate-900 dark:text-white" data-i18n="bikes_title">Fietsencollectie & TCO</h3>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white" data-i18n="bikes_title">Fietsencollectie & TCO</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400" data-i18n="bikes_sub">Beheer aanschafwaarden, restwaarden en datums</p>
                 </div>
-                <button onclick="openAddBikeModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer">
+                <button onclick="openAddBikeModal()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer min-h-[44px]">
                     <i class="ph-bold ph-plus"></i> <span data-i18n="btn_add_bike">Nieuwe Fiets Toevoegen</span>
                 </button>
             </div>
 
-            <div id="bikes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div id="bikes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             </div>
         </div>
 
     </main>
 
-    <!-- Modal: Add / Edit Bike -->
-    <div id="modal-bike" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 text-slate-800 dark:text-slate-200">
-            <div class="flex justify-between items-center mb-5 border-b border-slate-200 dark:border-slate-800 pb-3">
-                <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+    <!-- Modal: Add / Edit Bike (Scrollbaar op mobiel) -->
+    <div id="modal-bike" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col text-slate-800 dark:text-slate-200 overflow-hidden">
+            <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
+                <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <i class="ph-bold ph-bicycle text-blue-500"></i> 
                     <span id="modal-bike-title" data-i18n="modal_add_bike">Fiets Toevoegen</span>
                 </h3>
-                <button onclick="closeModal('modal-bike')" class="text-slate-400 hover:text-slate-600 dark:hover:text-white"><i class="ph-bold ph-x text-xl"></i></button>
+                <button onclick="closeModal('modal-bike')" class="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 cursor-pointer"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
-            <form id="form-add-bike" class="space-y-4">
+            <form id="form-add-bike" class="p-4 sm:p-6 space-y-4 overflow-y-auto">
                 <input type="hidden" id="bike-edit-id" value="">
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_bike_name">Naam / Model</label>
-                    <input type="text" id="bike-name" required placeholder="Bijv. Norta B3040" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                    <input type="text" id="bike-name" required placeholder="Bijv. Norta B3040" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none min-h-[44px]">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_bike_type">Type</label>
-                        <select id="bike-type" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                        <select id="bike-type" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none min-h-[44px]">
                             <option value="Road">Wegwielrennen</option>
                             <option value="Gravel">Gravelbike</option>
                             <option value="MTB">Mountainbike</option>
@@ -600,55 +653,55 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_purchase_date">Aankoopdatum</label>
-                        <input type="date" id="bike-purchase-date" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                        <input type="date" id="bike-purchase-date" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none min-h-[44px]">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_start_odo">Startstand (km)</label>
-                        <input type="number" id="bike-start-odo" value="0" min="0" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                        <input type="number" id="bike-start-odo" inputmode="numeric" value="0" min="0" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none min-h-[44px]">
                     </div>
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_purchase_price">Aankoopprijs (€)</label>
-                        <input type="number" id="bike-purchase-price" value="0" min="0" step="0.01" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                        <input type="number" id="bike-purchase-price" inputmode="decimal" value="0" min="0" step="0.01" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none min-h-[44px]">
                     </div>
                 </div>
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_resale_val">Geschatte Restwaarde (€)</label>
-                    <input type="number" id="bike-resale-value" value="0" min="0" step="0.01" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                    <input type="number" id="bike-resale-value" inputmode="decimal" value="0" min="0" step="0.01" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none min-h-[44px]">
                 </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 mt-2 cursor-pointer">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-md shadow-blue-600/30 flex items-center justify-center gap-2 cursor-pointer min-h-[44px]">
                     <i class="ph-bold ph-plus"></i> <span id="btn-bike-submit-text" data-i18n="btn_save_bike">Fiets Opslaan</span>
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- Modal: Add / Edit Component -->
-    <div id="modal-component" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 text-slate-800 dark:text-slate-200">
-            <div class="flex justify-between items-center mb-5 border-b border-slate-200 dark:border-slate-800 pb-3">
-                <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+    <!-- Modal: Add / Edit Component (Scrollbaar op mobiel) -->
+    <div id="modal-component" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col text-slate-800 dark:text-slate-200 overflow-hidden">
+            <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
+                <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <i class="ph-bold ph-wrench text-blue-500"></i> 
                     <span id="modal-comp-title" data-i18n="modal_add_comp">Onderdeel Monteren</span>
                 </h3>
-                <button onclick="closeModal('modal-component')" class="text-slate-400 hover:text-slate-600 dark:hover:text-white"><i class="ph-bold ph-x text-xl"></i></button>
+                <button onclick="closeModal('modal-component')" class="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 cursor-pointer"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
-            <form id="form-add-component" class="space-y-4">
+            <form id="form-add-component" class="p-4 sm:p-6 space-y-4 overflow-y-auto">
                 <input type="hidden" id="comp-edit-id" value="">
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_bike">Fiets</label>
-                    <select id="comp-bike-id" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                    <select id="comp-bike-id" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none min-h-[44px]">
                     </select>
                 </div>
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_comp_name">Naam Onderdeel</label>
-                    <input type="text" id="comp-name" required placeholder="Bijv. Ketting Shimano Ultegra 11s" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                    <input type="text" id="comp-name" required placeholder="Bijv. Ketting Shimano Ultegra 11s" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none min-h-[44px]">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_comp_category">Categorie</label>
-                        <select id="comp-category" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                        <select id="comp-category" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none min-h-[44px]">
                             <option value="Chain">Ketting</option>
                             <option value="Tires">Banden</option>
                             <option value="Brake Pads">Remblokken</option>
@@ -659,10 +712,10 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_lifespan">Levensduur (km)</label>
-                        <input type="number" id="comp-lifespan" value="3000" min="100" step="100" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                        <input type="number" id="comp-lifespan" inputmode="numeric" value="3000" min="100" step="100" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-base sm:text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none min-h-[44px]">
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 mt-2 cursor-pointer">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-md shadow-blue-600/30 flex items-center justify-center gap-2 cursor-pointer min-h-[44px]">
                     <i class="ph-bold ph-plus"></i> <span id="btn-comp-submit-text" data-i18n="btn_save_comp">Onderdeel Opslaan</span>
                 </button>
             </form>
@@ -670,73 +723,91 @@
     </div>
 
     <!-- Modal: Google Drive & Local Backup Sync -->
-    <div id="modal-drive-sync" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 text-slate-800 dark:text-slate-200">
-            <div class="flex justify-between items-center mb-5 border-b border-slate-200 dark:border-slate-800 pb-3">
-                <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <i class="ph-bold ph-google-drive-logo text-emerald-500 dark:text-emerald-400"></i>
-                    <span>Google Drive Cloud Sync</span>
+    <div id="modal-drive-sync" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col text-slate-800 dark:text-slate-200 overflow-hidden">
+            <div class="flex justify-between items-center p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
+                <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="ph-bold ph-google-drive-logo text-emerald-500"></i>
+                    <span>Cloud Backup & Bestanden</span>
                 </h3>
-                <button onclick="closeModal('modal-drive-sync')" class="text-slate-400 hover:text-slate-600 dark:hover:text-white"><i class="ph-bold ph-x text-xl"></i></button>
+                <button onclick="closeModal('modal-drive-sync')" class="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 cursor-pointer"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
             
-            <div class="space-y-4">
+            <div class="p-4 sm:p-6 space-y-4 overflow-y-auto">
+                <!-- Lokale JSON import & export -->
+                <div class="bg-slate-50 dark:bg-slate-950/80 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <h4 class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5 mb-1">
+                        <i class="ph-bold ph-floppy-disk text-purple-500 text-sm"></i> Bestand Backup (.json)
+                    </h4>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-3">Exporteer of importeer een bestand. Geïmporteerde data wordt direct gesynchroniseerd met je Google Cloud database!</p>
+                    <div class="flex gap-2">
+                        <button onclick="exportLocalBackupJSON()" class="bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2.5 px-3 rounded-lg text-xs flex-1 flex items-center justify-center gap-1 border border-slate-300 dark:border-slate-700 cursor-pointer min-h-[44px]">
+                            <i class="ph-bold ph-export"></i> Exporteer
+                        </button>
+                        <label class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-3 rounded-lg text-xs flex-1 flex items-center justify-center gap-1 cursor-pointer shadow-sm min-h-[44px]">
+                            <i class="ph-bold ph-file-arrow-up"></i> Importeer
+                            <input type="file" id="import-json-file" accept=".json" onchange="importLocalBackupJSON(event)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Google Drive Sync (Optioneel) -->
                 <div class="bg-slate-50 dark:bg-slate-950/80 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
                     <div class="flex justify-between items-center mb-2">
                         <h4 class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                            <i class="ph-bold ph-cloud-arrow-up text-blue-500 dark:text-blue-400 text-sm"></i> Directe Drive Cloud Sync
+                            <i class="ph-bold ph-google-drive-logo text-emerald-500 text-sm"></i> Google Drive Bestand Sync
                         </h4>
                         <div id="drive-status-badge" class="text-[10px] font-semibold text-slate-400">
                             Niet verbonden
                         </div>
                     </div>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-3">Koppel je Google account om `velometrics_backup.json` direct op je Drive op te slaan.</p>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-3">Sla `velometrics_backup.json` direct op in jouw persoonlijke Google Drive.</p>
                     
                     <div class="space-y-2">
-                        <input type="text" id="drive-client-id" placeholder="Google OAuth Client ID" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs font-mono text-slate-800 dark:text-slate-200">
+                        <input type="text" id="drive-client-id" placeholder="Google OAuth Client ID" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs font-mono text-slate-800 dark:text-slate-200 min-h-[40px]">
                         
-                        <button onclick="initGoogleDriveAuth()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
-                            <i class="ph-bold ph-google-logo"></i> Koppel met Google Account
+                        <button onclick="initGoogleDriveAuth()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow-sm cursor-pointer min-h-[40px]">
+                            <i class="ph-bold ph-google-logo"></i> Koppel met Drive
                         </button>
 
                         <div class="flex gap-2 pt-1">
-                            <button onclick="saveToDriveCloud()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-3 rounded-lg text-xs flex-1 flex items-center justify-center gap-1 cursor-pointer">
-                                <i class="ph-bold ph-upload-simple"></i> Upload naar Cloud
+                            <button onclick="saveToDriveCloud()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-3 rounded-lg text-xs flex-1 flex items-center justify-center gap-1 cursor-pointer min-h-[40px]">
+                                <i class="ph-bold ph-upload-simple"></i> Upload
                             </button>
-                            <button onclick="loadFromDriveCloud()" class="bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-3 rounded-lg text-xs flex-1 flex items-center justify-center gap-1 border border-slate-300 dark:border-slate-700 cursor-pointer">
-                                <i class="ph-bold ph-download-simple"></i> Download van Cloud
+                            <button onclick="loadFromDriveCloud()" class="bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-3 rounded-lg text-xs flex-1 flex items-center justify-center gap-1 border border-slate-300 dark:border-slate-700 cursor-pointer min-h-[40px]">
+                                <i class="ph-bold ph-download-simple"></i> Download
                             </button>
                         </div>
-                    </div>
-                </div>
-
-                <div class="bg-slate-50 dark:bg-slate-950/80 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
-                    <h4 class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5 mb-1">
-                        <i class="ph-bold ph-floppy-disk text-purple-500 dark:text-purple-400 text-sm"></i> Lokaal Bestand Backup (.json)
-                    </h4>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-3">Download of importeer een backupbestand. <strong>Wordt direct gesynchroniseerd naar je Google Cloud account!</strong></p>
-                    <div class="flex gap-2">
-                        <button onclick="exportLocalBackupJSON()" class="bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-3 rounded-lg text-xs flex-1 flex items-center justify-center gap-1 border border-slate-300 dark:border-slate-700 cursor-pointer">
-                            <i class="ph-bold ph-export"></i> Exporteer Bestand
-                        </button>
-                        <label class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-3 rounded-lg text-xs flex-1 flex items-center justify-center gap-1 cursor-pointer shadow-sm">
-                            <i class="ph-bold ph-file-arrow-up"></i> Importeer Bestand
-                            <input type="file" id="import-json-file" accept=".json" onchange="importLocalBackupJSON(event)" class="hidden">
-                        </label>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Modal: PWA Installatie Instructie (voor iOS en unsupported browsers) -->
+    <div id="modal-pwa-guide" class="hidden fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center">
+            <div class="w-14 h-14 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-500/20">
+                <i class="ph-bold ph-device-mobile text-3xl"></i>
+            </div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white mb-2">Installeer VeloMetrics Pro</h3>
+            <div id="pwa-guide-content" class="text-xs text-slate-500 dark:text-slate-400 space-y-3 text-left bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-800 my-4">
+                <!-- Dynamisch gevuld afhankelijk van iOS of Android/Desktop -->
+            </div>
+            <button onclick="closeModal('modal-pwa-guide')" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 rounded-xl text-xs cursor-pointer min-h-[44px]">
+                Begrepen
+            </button>
+        </div>
+    </div>
+
     <!-- General Alert & Confirm Modal -->
     <div id="modal-msg" class="hidden fixed inset-0 bg-slate-950/80 z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center transform transition-all" id="modal-msg-card">
-            <div id="msg-icon" class="mb-3 text-4xl text-blue-500"><i class="ph-bold ph-info"></i></div>
-            <h3 id="msg-title" class="text-lg font-bold text-slate-900 dark:text-white mb-2">Melding</h3>
-            <p id="msg-text" class="text-sm text-slate-500 dark:text-slate-400 mb-6">Bericht...</p>
-            <div id="msg-buttons" class="flex justify-center gap-3">
-                <button onclick="closeModal('modal-msg')" id="msg-btn-ok" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-xl w-full text-xs cursor-pointer">OK</button>
+            <div id="msg-icon" class="mb-3 text-3xl text-blue-500"><i class="ph-bold ph-info"></i></div>
+            <h3 id="msg-title" class="text-base font-bold text-slate-900 dark:text-white mb-1.5">Melding</h3>
+            <p id="msg-text" class="text-xs text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">Bericht...</p>
+            <div id="msg-buttons" class="flex justify-center gap-2">
+                <button onclick="closeModal('modal-msg')" id="msg-btn-ok" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-6 rounded-xl w-full text-xs cursor-pointer min-h-[44px]">OK</button>
             </div>
         </div>
     </div>
@@ -748,7 +819,7 @@
         import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =========================================================================
-        // FIREBASE CONFIGURATIE (GEKOPPELD MET JOUW PROJECT)
+        // FIREBASE CONFIGURATIE
         // =========================================================================
         const firebaseConfig = {
             apiKey: "AIzaSyCOAcmL6mtJnqp_GEjyR-kHDWgyDkQKVxU",
@@ -771,6 +842,7 @@
 
         let googleAccessToken = null;
         let googleTokenClient = null;
+        let deferredPwaPrompt = null;
 
         const categories = ['Maintenance', 'Parts', 'Gear', 'Upgrades', 'Purchase', 'Insurance', 'Other'];
         const categoryColors = {
@@ -784,45 +856,161 @@
         };
 
         let currentLang = localStorage.getItem('velometrics_lang') || 'nl';
-        let currentTheme = localStorage.getItem('velometrics_theme') || 'system';
+        let currentTheme = localStorage.getItem('velometrics_theme') || 'dark';
 
         const translations = {
             nl: {
-                all_bikes: "Alle Fietsen", drive_sync: "Drive Sync", export: "Exporteren",
+                all_bikes: "Alle Fietsen", drive_sync: "Drive Sync", export: "Export", install: "Installeer App",
                 theme_system: "💻 Systeem", theme_dark: "🌙 Donker", theme_light: "☀️ Licht",
-                nav_dashboard: "Dashboard", nav_rides: "Ritten & Gebruik", nav_components: "Onderdelen & Slijtage",
-                nav_expenses: "Uitgaven & Kosten", nav_bikes: "Fietsen & TCO",
-                kpi_tco: "Netto TCO (Totale Kosten)", kpi_maintenance: "Onderhoud & Onderdelen", kpi_distance: "Totale Afstand", kpi_cost_km: "Netto Kost per Kilometer",
+                nav_dashboard: "Dashboard", nav_rides: "Ritten", nav_components: "Onderdelen",
+                nav_expenses: "Uitgaven", nav_bikes: "Fietsen & TCO",
+                kpi_tco: "Netto TCO", kpi_maintenance: "Onderhoud", kpi_distance: "Afstand", kpi_cost_km: "Kost / km",
                 chart_timeline_title: "Maandelijkse Uitgaven Trend", chart_category_title: "Kosten Verdeling",
-                maint_alerts_title: "Slijtage & Onderhoudswaarschuwingen", view_all_components: "Bekijk alle onderdelen",
-                log_ride_title: "Rit Registreren", label_bike: "Fiets", select_bike: "Selecteer fiets...", label_date: "Datum", label_distance: "Afstand (km)", label_ride_type: "Type Rit", label_duration: "Duur (minuten)", label_notes: "Notities / Route", btn_save_ride: "Rit Opslaan & Teller Vernieuwen",
+                maint_alerts_title: "Slijtage & Service Alerts", view_all_components: "Alle onderdelen",
+                log_ride_title: "Rit Registreren", label_bike: "Fiets", select_bike: "Selecteer fiets...", label_date: "Datum", label_distance: "Afstand (km)", label_ride_type: "Type Rit", label_duration: "Duur (min)", label_notes: "Notities / Route", btn_save_ride: "Rit Opslaan",
                 type_commute: "Woon-werk", type_sport: "Sport / Training", type_leisure: "Recreatie", type_utility: "Boodschappen",
-                rides_history_title: "Geregistreerde Ritten", th_date: "Datum", th_bike: "Fiets", th_type: "Type", th_distance: "Afstand", th_duration: "Duur", th_action: "Actie",
+                rides_history_title: "Geregistreerde Ritten",
                 components_title: "Onderdeelslijtage & Levensduur", components_sub: "Volg de kilometerstand van individuele onderdelen", btn_add_component: "Nieuw Onderdeel Monteren",
-                expense_form_title: "Uitgave Loggen", label_amount: "Bedrag (€)", label_category: "Categorie", label_description: "Omschrijving", label_odometer: "Tellerstand (km)", label_unknown: "Onbekend", btn_save_expense: "Uitgave Opslaan", expense_history_title: "Uitgavenhistorie", th_category: "Categorie", th_desc: "Omschrijving", th_odo: "Tellerstand", th_amount: "Bedrag",
+                expense_form_title: "Uitgave Loggen", label_amount: "Bedrag (€)", label_category: "Categorie", label_description: "Omschrijving", label_odometer: "Tellerstand (km)", label_unknown: "Onbekend", btn_save_expense: "Uitgave Opslaan", expense_history_title: "Uitgavenhistorie",
                 bikes_title: "Fietsencollectie & TCO", bikes_sub: "Beheer aanschafwaarden, restwaarden en datums", btn_add_bike: "Nieuwe Fiets Toevoegen", modal_add_bike: "Fiets Toevoegen", label_bike_name: "Naam / Model", label_bike_type: "Type", label_purchase_date: "Aankoopdatum", label_start_odo: "Startstand (km)", label_purchase_price: "Aankoopprijs (€)", label_resale_val: "Geschatte Restwaarde (€)", btn_save_bike: "Fiets Opslaan",
                 modal_add_comp: "Onderdeel Monteren", label_comp_name: "Naam Onderdeel", label_comp_category: "Categorie", label_lifespan: "Levensduur (km)", btn_save_comp: "Onderdeel Opslaan",
                 cat_Maintenance: "Onderhoud & Service", cat_Parts: "Onderdelen & Componenten", cat_Gear: "Accessoires & Kleding", cat_Upgrades: "Upgrades", cat_Purchase: "Aankoop Fiets", cat_Insurance: "Verzekering", cat_Other: "Overig"
             },
             en: {
-                all_bikes: "All Bikes", drive_sync: "Drive Sync", export: "Export CSV",
+                all_bikes: "All Bikes", drive_sync: "Drive Sync", export: "Export", install: "Install App",
                 theme_system: "💻 System", theme_dark: "🌙 Dark", theme_light: "☀️ Light",
-                nav_dashboard: "Dashboard", nav_rides: "Rides & Usage", nav_components: "Components & Wear",
-                nav_expenses: "Expenses & Costs", nav_bikes: "Bikes & TCO",
-                kpi_tco: "Net TCO (Total Cost)", kpi_maintenance: "Maintenance & Parts", kpi_distance: "Total Distance", kpi_cost_km: "Net Cost per Kilometer",
+                nav_dashboard: "Dashboard", nav_rides: "Rides", nav_components: "Components",
+                nav_expenses: "Expenses", nav_bikes: "Bikes & TCO",
+                kpi_tco: "Net TCO", kpi_maintenance: "Maintenance", kpi_distance: "Distance", kpi_cost_km: "Cost / km",
                 chart_timeline_title: "Monthly Expense Trend", chart_category_title: "Cost Distribution",
-                maint_alerts_title: "Wear & Maintenance Alerts", view_all_components: "View all components",
-                log_ride_title: "Log Ride", label_bike: "Bike", select_bike: "Select bike...", label_date: "Date", label_distance: "Distance (km)", label_ride_type: "Ride Type", label_duration: "Duration (min)", label_notes: "Notes / Route", btn_save_ride: "Save Ride & Update Odometer",
+                maint_alerts_title: "Wear & Service Alerts", view_all_components: "All components",
+                log_ride_title: "Log Ride", label_bike: "Bike", select_bike: "Select bike...", label_date: "Date", label_distance: "Distance (km)", label_ride_type: "Ride Type", label_duration: "Duration (min)", label_notes: "Notes / Route", btn_save_ride: "Save Ride",
                 type_commute: "Commute", type_sport: "Sport / Training", type_leisure: "Leisure", type_utility: "Utility",
-                rides_history_title: "Recorded Rides", th_date: "Date", th_bike: "Bike", th_type: "Type", th_distance: "Distance", th_duration: "Duration", th_action: "Action",
-                components_title: "Component Wear & Lifespan", components_sub: "Track exact mileage for individual components", btn_add_component: "Mount New Component",
-                expense_form_title: "Log Expense", label_amount: "Amount (€)", label_category: "Category", label_description: "Description", label_odometer: "Odometer (km)", label_unknown: "Unknown", btn_save_expense: "Save Expense", expense_history_title: "Expense History", th_category: "Category", th_desc: "Description", th_odo: "Odometer", th_amount: "Amount",
-                bikes_title: "Bike Collection & TCO", bikes_sub: "Manage purchase prices, resale value and dates", btn_add_bike: "Add New Bike", modal_add_bike: "Add Bike", label_bike_name: "Name / Model", label_bike_type: "Type", label_purchase_date: "Purchase Date", label_start_odo: "Start Odometer (km)", label_purchase_price: "Purchase Price (€)", label_resale_val: "Est. Resale Value (€)", btn_save_bike: "Save Bike",
+                rides_history_title: "Recorded Rides",
+                components_title: "Component Wear & Lifespan", components_sub: "Track mileage for individual components", btn_add_component: "Mount New Component",
+                expense_form_title: "Log Expense", label_amount: "Amount (€)", label_category: "Category", label_description: "Description", label_odometer: "Odometer (km)", label_unknown: "Unknown", btn_save_expense: "Save Expense", expense_history_title: "Expense History",
+                bikes_title: "Bike Collection & TCO", bikes_sub: "Manage purchase prices, resale values and dates", btn_add_bike: "Add New Bike", modal_add_bike: "Add Bike", label_bike_name: "Name / Model", label_bike_type: "Type", label_purchase_date: "Purchase Date", label_start_odo: "Start Odometer (km)", label_purchase_price: "Purchase Price (€)", label_resale_val: "Est. Resale Value (€)", btn_save_bike: "Save Bike",
                 modal_add_comp: "Mount Component", label_comp_name: "Component Name", label_comp_category: "Category", label_lifespan: "Lifespan (km)", btn_save_comp: "Save Component",
                 cat_Maintenance: "Maintenance & Service", cat_Parts: "Parts & Components", cat_Gear: "Gear & Apparel", cat_Upgrades: "Upgrades", cat_Purchase: "Bike Purchase", cat_Insurance: "Insurance", cat_Other: "Other"
             }
         };
 
+        // =========================================================================
+        // PWA SETUP (MANIFEST, SERVICE WORKER & INSTALL PROMPT)
+        // =========================================================================
+        function setupPwa() {
+            // Bouw dynamisch het Web App Manifest
+            const iconSvg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%232563eb'><rect width='512' height='512' rx='128' fill='%230f172a'/><path d='M160 368a80 80 0 1 0-80-80 80 80 0 0 0 80 80zm200 0a80 80 0 1 0-80-80 80 80 0 0 0 80 80z' stroke='%2338bdf8' stroke-width='28' fill='none' stroke-linecap='round' stroke-linejoin='round'/><path d='M160 288h72l48-88h88m-136 88l40-88m-64-48h56m120 48l40 88' stroke='%2338bdf8' stroke-width='28' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>`;
+            const iconUrl = 'data:image/svg+xml;utf8,' + encodeURIComponent(iconSvg);
+
+            const manifestData = {
+                name: "VeloMetrics Pro",
+                short_name: "VeloMetrics",
+                description: "Advanced Bike Analytics & TCO Tracker",
+                start_url: "./",
+                scope: "./",
+                display: "standalone",
+                orientation: "portrait-primary",
+                background_color: "#0f172a",
+                theme_color: "#0f172a",
+                icons: [
+                    { src: iconUrl, sizes: "192x192 512x512", type: "image/svg+xml", purpose: "any maskable" }
+                ]
+            };
+
+            const manifestBlob = new Blob([JSON.stringify(manifestData)], { type: 'application/manifest+json' });
+            const manifestLink = document.getElementById('pwa-manifest-link');
+            if (manifestLink) manifestLink.href = URL.createObjectURL(manifestBlob);
+
+            // Registreer Service Worker (voor PWA vlag en offline basis)
+            if ('serviceWorker' in navigator) {
+                const swCode = `
+                    const CACHE_NAME = 'velometrics-pwa-v1';
+                    self.addEventListener('install', (e) => { self.skipWaiting(); });
+                    self.addEventListener('activate', (e) => { e.waitUntil(clients.claim()); });
+                    self.addEventListener('fetch', (e) => {
+                        e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+                    });
+                `;
+                try {
+                    const swBlob = new Blob([swCode], { type: 'application/javascript' });
+                    const swUrl = URL.createObjectURL(swBlob);
+                    navigator.serviceWorker.register(swUrl).catch(() => {
+                        // Sommige browsers blokkeren Blob SW, probeer relatieve sw.js indien aanwezig
+                        navigator.serviceWorker.register('./sw.js').catch(() => {});
+                    });
+                } catch(e) {}
+            }
+
+            // Luister naar het Chrome / Android installatie event
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPwaPrompt = e;
+                const btn = document.getElementById('pwa-install-btn');
+                if (btn) btn.classList.remove('hidden');
+            });
+
+            // Als de app al geïnstalleerd is
+            window.addEventListener('appinstalled', () => {
+                deferredPwaPrompt = null;
+                const btn = document.getElementById('pwa-install-btn');
+                if (btn) btn.classList.add('hidden');
+            });
+
+            // Toon op standalone iOS de install knop niet
+            if (window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches) {
+                const btn = document.getElementById('pwa-install-btn');
+                if (btn) btn.classList.add('hidden');
+            } else {
+                // Toon de installeer knop ook op iOS Safari zodat gebruikers de instructies kunnen zien
+                const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                if (isIos) {
+                    const btn = document.getElementById('pwa-install-btn');
+                    if (btn) btn.classList.remove('hidden');
+                }
+            }
+        }
+
+        window.triggerPwaInstall = function() {
+            if (deferredPwaPrompt) {
+                deferredPwaPrompt.prompt();
+                deferredPwaPrompt.userChoice.then((choice) => {
+                    if (choice.outcome === 'accepted') {
+                        document.getElementById('pwa-install-btn').classList.add('hidden');
+                    }
+                    deferredPwaPrompt = null;
+                });
+            } else {
+                // Toon instructies per type apparaat
+                const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                const guideContent = document.getElementById('pwa-guide-content');
+                if (isIos) {
+                    guideContent.innerHTML = `
+                        <p class="font-bold text-slate-800 dark:text-slate-200">Voor iPhone & iPad (Safari):</p>
+                        <ol class="list-decimal pl-4 space-y-1.5">
+                            <li>Tik onderaan op de <strong>Deel-knop</strong> <i class="ph-bold ph-export"></i>.</li>
+                            <li>Scroll een stukje omlaag en tik op <strong>"Zet op beginscherm"</strong> <i class="ph-bold ph-plus-square"></i>.</li>
+                            <li>Tik rechtsboven op <strong>Voeg toe</strong>.</li>
+                        </ol>
+                    `;
+                } else {
+                    guideContent.innerHTML = `
+                        <p class="font-bold text-slate-800 dark:text-slate-200">Voor Android & Desktop:</p>
+                        <ol class="list-decimal pl-4 space-y-1.5">
+                            <li>Tik in de browser rechtsboven op het menu (<strong>drie puntjes</strong>).</li>
+                            <li>Kies <strong>"App installeren"</strong> of <strong>"Toevoegen aan startscherm"</strong>.</li>
+                            <li>Bevestig om VeloMetrics als zelfstandige app te installeren.</li>
+                        </ol>
+                    `;
+                }
+                const modal = document.getElementById('modal-pwa-guide');
+                if (modal) modal.classList.remove('hidden');
+            }
+        };
+
+        // =========================================================================
+        // THEMA & TAAL
+        // =========================================================================
         function applyTheme(theme) {
             currentTheme = theme;
             localStorage.setItem('velometrics_theme', theme);
@@ -844,9 +1032,16 @@
             }
             const sel = document.getElementById('theme-selector');
             if (sel) sel.value = theme;
+            const mobileText = document.getElementById('mobile-theme-text');
+            if (mobileText) mobileText.innerText = theme === 'dark' ? 'Thema: Donker' : 'Thema: Licht';
             if (typeof renderAllViews === 'function') renderAllViews();
         }
         window.applyTheme = applyTheme;
+
+        window.toggleThemeQuick = function() {
+            const nextTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+            applyTheme(nextTheme);
+        };
 
         function setLanguage(lang) {
             currentLang = lang;
@@ -864,6 +1059,9 @@
                 }
             }
 
+            const mobileLang = document.getElementById('mobile-lang-text');
+            if (mobileLang) mobileLang.innerText = `Taal: ${lang.toUpperCase()}`;
+
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (translations[lang] && translations[lang][key]) {
@@ -876,6 +1074,10 @@
             renderAllViews();
         }
         window.setLanguage = setLanguage;
+
+        window.toggleLangQuick = function() {
+            setLanguage(currentLang === 'nl' ? 'en' : 'nl');
+        };
 
         function getCatLabel(catKey) {
             if (translations[currentLang] && translations[currentLang][`cat_${catKey}`]) {
@@ -937,7 +1139,7 @@
                 if (profileBox) profileBox.classList.remove('hidden');
                 if (userAvatar) userAvatar.src = user.photoURL || 'https://api.dicebear.com/7.x/identicon/svg?seed=' + user.uid;
                 if (userName) userName.innerText = user.displayName ? user.displayName.split(' ')[0] : 'Gebruiker';
-                if (networkText) networkText.innerText = `Google Sync (${user.displayName || 'Cloud'})`;
+                if (networkText) networkText.innerText = `Google Sync (${user.displayName ? user.displayName.split(' ')[0] : 'Cloud'})`;
             } else {
                 if (btnLogin) btnLogin.classList.remove('hidden');
                 if (profileBox) profileBox.classList.add('hidden');
@@ -946,7 +1148,7 @@
         }
 
         // =========================================================================
-        // MODAL OPENERS (ADD & EDIT)
+        // MODALS (ADD & EDIT)
         // =========================================================================
         window.openAddBikeModal = function() {
             document.getElementById('bike-edit-id').value = '';
@@ -1069,6 +1271,9 @@
             document.getElementById('heading-expense-form').innerText = translations[currentLang].expense_form_title;
         };
 
+        // =========================================================================
+        // DATA OPSLAG & INITIALISATIE
+        // =========================================================================
         function saveLocalData() {
             localStorage.setItem('velometrics_local_db', JSON.stringify({ bikes, expenses, rides, components }));
         }
@@ -1088,6 +1293,7 @@
         }
 
         async function init() {
+            setupPwa();
             applyTheme(currentTheme);
             loadLocalData();
 
@@ -1185,7 +1391,7 @@
         }
 
         // =========================================================================
-        // FORM SUBMIT HANDLERS (MET CLOUD SYNC VIA SETDOC)
+        // FORM SUBMIT HANDLERS
         // =========================================================================
         document.getElementById('form-add-bike')?.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1444,7 +1650,7 @@
         };
 
         // =========================================================================
-        // GOOGLE DRIVE & LOKALE BACKUP (MET DIRECTE CLOUD SYNC)
+        // BACKUP & EXPORT
         // =========================================================================
         window.exportLocalBackupJSON = function() {
             const backupObj = { bikes, expenses, rides, components, exportedAt: new Date().toISOString() };
@@ -1469,7 +1675,6 @@
                     const importedRides = data.rides || [];
                     const importedComponents = data.components || [];
 
-                    // 1. Direct in het geheugen en lokaal laden
                     bikes = importedBikes;
                     expenses = importedExpenses;
                     rides = importedRides;
@@ -1479,7 +1684,7 @@
                     renderAllViews();
                     closeModal('modal-drive-sync');
 
-                    // 2. Direct wegschrijven naar Cloud Firestore voor het ingelogde Google account!
+                    // Batch schrijven naar Firestore
                     if (!useLocalStorage && currentUser && db) {
                         const userPath = ['artifacts', appId, 'users', currentUser.uid];
                         const operations = [];
@@ -1505,7 +1710,6 @@
                             operations.push({ ref: doc(db, ...userPath, 'components', id), data: c });
                         });
 
-                        // Schrijf in veilige batches van maximaal 400 documenten
                         const chunkSize = 400;
                         for (let i = 0; i < operations.length; i += chunkSize) {
                             const chunk = operations.slice(i, i + chunkSize);
@@ -1515,10 +1719,10 @@
                         }
                     }
 
-                    showMessageModal("Import Succesvol", "Je backup is succesvol geïmporteerd én direct gesynchroniseerd met je Google Cloud database!");
+                    showMessageModal("Import Succesvol", "Gegevens succesvol geïmporteerd én direct gesynchroniseerd met je Google Cloud account!");
                 } catch (err) {
                     console.error("Import fout:", err);
-                    showMessageModal("Import Fout", "Fout bij importeren of opslaan: " + err.message, false);
+                    showMessageModal("Import Fout", "Fout bij importeren: " + err.message, false);
                 }
             };
             reader.readAsText(file);
@@ -1527,7 +1731,7 @@
         window.initGoogleDriveAuth = function() {
             const clientIdInput = document.getElementById('drive-client-id')?.value.trim();
             if (!clientIdInput) {
-                showMessageModal("OAuth Client ID Vereist", "Vul een geldige Google OAuth Client ID in of gebruik de Lokale Bestand Backup optie.");
+                showMessageModal("Client ID Vereist", "Vul een geldige Google OAuth Client ID in of gebruik de Bestand Backup optie.");
                 return;
             }
             localStorage.setItem('velometrics_gdrive_client_id', clientIdInput);
@@ -1555,7 +1759,7 @@
 
         window.saveToDriveCloud = async function() {
             if (!googleAccessToken) {
-                showMessageModal("Drive niet gekoppeld", "Klik eerst op 'Koppel met Google Account'.");
+                showMessageModal("Drive niet gekoppeld", "Klik eerst op 'Koppel met Drive'.");
                 return;
             }
             const backupObj = { bikes, expenses, rides, components, updatedAt: new Date().toISOString() };
@@ -1584,7 +1788,7 @@
                         body: form
                     });
                 }
-                showMessageModal("Cloud Upload Gelukt", "Gegevens succesvol opgeslagen op je Google Drive (`velometrics_backup.json`)!");
+                showMessageModal("Cloud Upload Gelukt", "Gegevens opgeslagen op Google Drive (`velometrics_backup.json`)!");
             } catch (err) {
                 showMessageModal("Upload Fout", "Uploaden naar Google Drive mislukt: " + err.message);
             }
@@ -1592,7 +1796,7 @@
 
         window.loadFromDriveCloud = async function() {
             if (!googleAccessToken) {
-                showMessageModal("Drive niet gekoppeld", "Klik eerst op 'Koppel met Google Account'.");
+                showMessageModal("Drive niet gekoppeld", "Klik eerst op 'Koppel met Drive'.");
                 return;
             }
             try {
@@ -1635,8 +1839,8 @@
 
             if (isConfirm) {
                 buttonsEl.innerHTML = `
-                    <button id="msg-btn-cancel" class="bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-4 rounded-xl flex-1 text-xs cursor-pointer">Annuleren</button>
-                    <button id="msg-btn-confirm" class="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-xl flex-1 text-xs cursor-pointer">Bevestigen</button>
+                    <button id="msg-btn-cancel" class="bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2.5 px-4 rounded-xl flex-1 text-xs cursor-pointer min-h-[44px]">Annuleren</button>
+                    <button id="msg-btn-confirm" class="bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 px-4 rounded-xl flex-1 text-xs cursor-pointer min-h-[44px]">Bevestigen</button>
                 `;
                 document.getElementById('msg-btn-cancel').onclick = () => closeModal('modal-msg');
                 document.getElementById('msg-btn-confirm').onclick = () => {
@@ -1645,39 +1849,47 @@
                 };
             } else {
                 buttonsEl.innerHTML = `
-                    <button onclick="closeModal('modal-msg')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-xl w-full text-xs cursor-pointer">OK</button>
+                    <button onclick="closeModal('modal-msg')" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-6 rounded-xl w-full text-xs cursor-pointer min-h-[44px]">OK</button>
                 `;
             }
             modal.classList.remove('hidden');
         };
 
         // =========================================================================
-        // RENDERING & GRAFIEKEN
+        // RENDERING & WEERGAVE
         // =========================================================================
         function updateBikeDropdowns() {
             const filterSel = document.getElementById('global-bike-filter');
+            const filterMobile = document.getElementById('global-bike-filter-mobile');
             const expBikeSel = document.getElementById('exp-bike-id');
             const rideBikeSel = document.getElementById('ride-bike-id');
 
             if (!filterSel || !expBikeSel || !rideBikeSel) return;
 
             const curFilter = filterSel.value;
-            filterSel.innerHTML = `<option value="all">${translations[currentLang].all_bikes}</option>`;
-            expBikeSel.innerHTML = `<option value="" disabled selected>${translations[currentLang].select_bike}</option>`;
-            rideBikeSel.innerHTML = `<option value="" disabled selected>${translations[currentLang].select_bike}</option>`;
+            const optionsHtml = `<option value="all">${translations[currentLang].all_bikes}</option>` +
+                bikes.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
 
-            bikes.forEach(b => {
-                filterSel.innerHTML += `<option value="${b.id}">${b.name}</option>`;
-                expBikeSel.innerHTML += `<option value="${b.id}">${b.name}</option>`;
-                rideBikeSel.innerHTML += `<option value="${b.id}">${b.name}</option>`;
-            });
+            filterSel.innerHTML = optionsHtml;
+            if (filterMobile) filterMobile.innerHTML = optionsHtml;
+
+            const selectPrompt = `<option value="" disabled selected>${translations[currentLang].select_bike}</option>`;
+            expBikeSel.innerHTML = selectPrompt + bikes.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+            rideBikeSel.innerHTML = selectPrompt + bikes.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
 
             filterSel.value = curFilter || 'all';
+            if (filterMobile) filterMobile.value = curFilter || 'all';
         }
 
-        document.getElementById('global-bike-filter')?.addEventListener('change', (e) => {
-            selectedBikeFilter = e.target.value;
+        window.syncBikeFilter = function(val) {
+            selectedBikeFilter = val;
+            const filterDesktop = document.getElementById('global-bike-filter');
+            if (filterDesktop) filterDesktop.value = val;
             renderAllViews();
+        };
+
+        document.getElementById('global-bike-filter')?.addEventListener('change', (e) => {
+            window.syncBikeFilter(e.target.value);
         });
 
         function renderAllViews() {
@@ -1715,11 +1927,11 @@
             document.getElementById('kpi-net-tco').innerText = `€${netTCO.toFixed(2)}`;
             document.getElementById('kpi-maintenance-spent').innerText = `€${maintenanceAndPartsSpent.toFixed(2)}`;
             document.getElementById('kpi-total-distance').innerText = `${totalRideDistance.toLocaleString('nl-NL', {maximumFractionDigits: 1})} km`;
-            document.getElementById('kpi-rides-count').innerText = `${filteredRides.length} ritten geregistreerd`;
+            document.getElementById('kpi-rides-count').innerText = `${filteredRides.length} ritten`;
             document.getElementById('kpi-cost-per-km').innerText = `€${costPerKm.toFixed(2)} / km`;
-            document.getElementById('kpi-wear-alert-count').innerText = `${wearAlertsCount} onderdelen vereisen service`;
+            document.getElementById('kpi-wear-alert-count').innerText = `${wearAlertsCount} alerts`;
 
-            // Voeg de aankoopwaarde van de fiets(en) toe op de daadwerkelijke aankoopdatum
+            // Chronologische opname van fietsaankoop
             const chartExpenses = [...filteredExpenses];
             filteredBikes.forEach(b => {
                 if (b.purchasePrice && Number(b.purchasePrice) > 0) {
@@ -1736,9 +1948,9 @@
 
             renderCharts(chartExpenses);
             renderWearAlerts(filteredComponents);
-            renderRidesTable(filteredRides);
+            renderRidesViews(filteredRides);
             renderComponentsGrid(filteredComponents);
-            renderExpensesTable(filteredExpenses);
+            renderExpensesViews(filteredExpenses);
             renderBikesGrid(filteredBikes);
         }
 
@@ -1747,7 +1959,6 @@
             const textColor = isDark ? '#94a3b8' : '#475569';
             const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
 
-            // Groepeer en sorteer chronologisch
             const monthlyTotals = {};
             expData.forEach(e => {
                 if (!e.date) return;
@@ -1766,7 +1977,7 @@
                     data: {
                         labels: timeLabels,
                         datasets: [{
-                            label: 'Maandelijkse Uitgaven (€)', 
+                            label: 'Uitgaven (€)', 
                             data: timeValues,
                             borderColor: '#3b82f6', 
                             backgroundColor: 'rgba(59, 130, 246, 0.15)',
@@ -1780,8 +1991,8 @@
                         responsive: true, 
                         maintainAspectRatio: false,
                         scales: {
-                            x: { grid: { display: false }, ticks: { color: textColor } },
-                            y: { grid: { color: gridColor }, ticks: { color: textColor }, beginAtZero: true }
+                            x: { grid: { display: false }, ticks: { color: textColor, font: { size: 10 } } },
+                            y: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 10 } }, beginAtZero: true }
                         },
                         plugins: { legend: { display: false } }
                     }
@@ -1817,7 +2028,7 @@
                         plugins: { 
                             legend: { 
                                 position: 'bottom', 
-                                labels: { color: textColor, font: { size: 10 }, usePointStyle: true } 
+                                labels: { color: textColor, font: { size: 10 }, usePointStyle: true, boxWidth: 6 } 
                             } 
                         },
                         cutout: '70%'
@@ -1833,7 +2044,7 @@
 
             const needyComps = comps.sort((a,b) => (b.currentKm/b.expectedLifespan) - (a.currentKm/a.expectedLifespan)).slice(0, 3);
             if (needyComps.length === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-500 italic col-span-3">Geen onderdelen gevonden of geregistreerd.</p>`;
+                container.innerHTML = `<p class="text-xs text-slate-500 italic col-span-full py-2">Geen onderdelen gevonden of geregistreerd.</p>`;
                 return;
             }
 
@@ -1851,55 +2062,165 @@
 
                 const bike = bikes.find(b => b.id === c.bikeId);
                 container.innerHTML += `
-                    <div class="bg-slate-50 dark:bg-slate-900/80 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <h4 class="text-xs font-bold text-slate-900 dark:text-white">${c.name}</h4>
-                                <span class="text-[10px] text-slate-500 dark:text-slate-400">${bike ? bike.name : 'Fiets'}</span>
+                    <div class="bg-slate-50 dark:bg-slate-900/80 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                        <div class="flex justify-between items-start mb-1.5">
+                            <div class="min-w-0 pr-1">
+                                <h4 class="text-xs font-bold text-slate-900 dark:text-white truncate">${c.name}</h4>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400 truncate block">${bike ? bike.name : 'Fiets'}</span>
                             </div>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md border ${badgeClass}">${badgeText}</span>
+                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded border ${badgeClass} flex-shrink-0">${badgeText}</span>
                         </div>
-                        <div class="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden mt-2">
+                        <div class="w-full bg-slate-200 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden mt-1.5">
                             <div class="h-full ${perc >= 90 ? 'bg-red-500' : perc >= 70 ? 'bg-amber-500' : 'bg-emerald-500'}" style="width: ${perc}%"></div>
                         </div>
-                        <div class="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 mt-1.5 font-medium">
-                            <span>${c.currentKm || 0} km gereden</span>
-                            <span>${perc}% slijtage</span>
+                        <div class="flex justify-between text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-medium">
+                            <span>${c.currentKm || 0} km</span>
+                            <span>${perc}%</span>
                         </div>
                     </div>
                 `;
             });
         }
 
-        function renderRidesTable(rideList) {
+        // Dubbele weergave voor ritten: Kaartjes op mobiel + tabel op desktop
+        function renderRidesViews(rideList) {
             const tbody = document.getElementById('table-rides-body');
-            if (!tbody) return;
-            tbody.innerHTML = '';
+            const mobileList = document.getElementById('rides-mobile-list');
+            if (tbody) tbody.innerHTML = '';
+            if (mobileList) mobileList.innerHTML = '';
 
             if (rideList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-xs text-slate-500">Geen ritten geregistreerd.</td></tr>`;
+                const emptyMsg = `<div class="p-6 text-center text-xs text-slate-500 italic">Geen ritten geregistreerd.</div>`;
+                if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-xs text-slate-500 italic">Geen ritten geregistreerd.</td></tr>`;
+                if (mobileList) mobileList.innerHTML = emptyMsg;
                 return;
             }
 
             rideList.forEach(r => {
                 const bike = bikes.find(b => b.id === r.bikeId);
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-100 dark:hover:bg-slate-800/40 transition-colors">
-                        <td class="p-3 text-slate-700 dark:text-slate-300">${r.date}</td>
-                        <td class="p-3 font-semibold text-slate-900 dark:text-white">${bike ? bike.name : '-'}</td>
-                        <td class="p-3"><span class="text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 px-2 py-0.5 rounded-md font-bold">${r.rideType || 'Sport'}</span></td>
-                        <td class="p-3 text-right font-bold text-blue-600 dark:text-blue-400">${r.distance} km</td>
-                        <td class="p-3 text-right text-slate-500 dark:text-slate-400">${r.duration ? r.duration + ' min' : '-'}</td>
-                        <td class="p-3 text-center whitespace-nowrap">
-                            <button onclick="editRide('${r.id}')" title="Bewerken" class="text-slate-400 hover:text-blue-500 p-1 cursor-pointer transition-colors mr-1">
-                                <i class="ph-bold ph-pencil-simple text-base"></i>
-                            </button>
-                            <button onclick="deleteRecord('rides', '${r.id}')" title="Verwijderen" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer transition-colors">
-                                <i class="ph-bold ph-trash text-base"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
+                const bikeName = bike ? bike.name : '-';
+
+                // Desktop Table Row
+                if (tbody) {
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-100 dark:hover:bg-slate-800/40 transition-colors">
+                            <td class="p-3 text-slate-700 dark:text-slate-300">${r.date}</td>
+                            <td class="p-3 font-semibold text-slate-900 dark:text-white">${bikeName}</td>
+                            <td class="p-3"><span class="text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 px-2 py-0.5 rounded-md font-bold">${r.rideType || 'Sport'}</span></td>
+                            <td class="p-3 text-right font-bold text-blue-600 dark:text-blue-400">${r.distance} km</td>
+                            <td class="p-3 text-right text-slate-500 dark:text-slate-400">${r.duration ? r.duration + ' min' : '-'}</td>
+                            <td class="p-3 text-center whitespace-nowrap">
+                                <button onclick="editRide('${r.id}')" title="Bewerken" class="text-slate-400 hover:text-blue-500 p-1 cursor-pointer transition-colors mr-1">
+                                    <i class="ph-bold ph-pencil-simple text-base"></i>
+                                </button>
+                                <button onclick="deleteRecord('rides', '${r.id}')" title="Verwijderen" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer transition-colors">
+                                    <i class="ph-bold ph-trash text-base"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }
+
+                // Mobile Card View
+                if (mobileList) {
+                    mobileList.innerHTML += `
+                        <div class="bg-slate-50 dark:bg-slate-900/90 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 flex justify-between items-center gap-3">
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-xs font-bold text-slate-900 dark:text-white truncate">${bikeName}</span>
+                                    <span class="text-[9px] bg-blue-500/10 text-blue-500 font-bold px-1.5 py-0.2 rounded">${r.rideType || 'Sport'}</span>
+                                </div>
+                                <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                    <span>${r.date}</span>
+                                    ${r.duration ? `<span>• ${r.duration}m</span>` : ''}
+                                </div>
+                                ${r.notes ? `<p class="text-[10px] text-slate-400 truncate mt-0.5">${r.notes}</p>` : ''}
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <span class="text-sm font-black text-blue-600 dark:text-blue-400">${r.distance} km</span>
+                                <div class="flex flex-col gap-1">
+                                    <button onclick="editRide('${r.id}')" class="p-1.5 text-slate-400 hover:text-blue-500 cursor-pointer"><i class="ph-bold ph-pencil-simple text-base"></i></button>
+                                    <button onclick="deleteRecord('rides', '${r.id}')" class="p-1.5 text-slate-400 hover:text-red-500 cursor-pointer"><i class="ph-bold ph-trash text-base"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        // Dubbele weergave voor uitgaven: Kaartjes op mobiel + tabel op desktop
+        function renderExpensesViews(expList) {
+            const tbody = document.getElementById('table-expenses-body');
+            const mobileList = document.getElementById('expenses-mobile-list');
+            if (tbody) tbody.innerHTML = '';
+            if (mobileList) mobileList.innerHTML = '';
+
+            if (expList.length === 0) {
+                const emptyMsg = `<div class="p-6 text-center text-xs text-slate-500 italic">Geen uitgaven gevonden.</div>`;
+                if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-xs text-slate-500 italic">Geen uitgaven gevonden.</td></tr>`;
+                if (mobileList) mobileList.innerHTML = emptyMsg;
+                return;
+            }
+
+            expList.forEach(e => {
+                const bike = bikes.find(b => b.id === e.bikeId);
+                const bikeName = bike ? bike.name : '-';
+                const color = categoryColors[e.category] || '#94a3b8';
+
+                // Desktop Table Row
+                if (tbody) {
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-100 dark:hover:bg-slate-800/40 transition-colors">
+                            <td class="p-3 text-slate-700 dark:text-slate-300">${e.date}</td>
+                            <td class="p-3 font-semibold text-slate-900 dark:text-white">${bikeName}</td>
+                            <td class="p-3">
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background-color: ${color}20; color: ${color}; border: 1px solid ${color}40">
+                                    ${window.getCatLabel(e.category)}
+                                </span>
+                            </td>
+                            <td class="p-3 text-slate-800 dark:text-slate-200 font-medium">${e.description}</td>
+                            <td class="p-3 text-right text-slate-500 dark:text-slate-400">${e.odometer !== null ? e.odometer + ' km' : '-'}</td>
+                            <td class="p-3 text-right font-black text-slate-900 dark:text-white">€${e.amount.toFixed(2)}</td>
+                            <td class="p-3 text-center whitespace-nowrap">
+                                <button onclick="editExpense('${e.id}')" title="Bewerken" class="text-slate-400 hover:text-blue-500 p-1 cursor-pointer transition-colors mr-1">
+                                    <i class="ph-bold ph-pencil-simple text-base"></i>
+                                </button>
+                                <button onclick="deleteRecord('expenses', '${e.id}')" title="Verwijderen" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer transition-colors">
+                                    <i class="ph-bold ph-trash text-base"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }
+
+                // Mobile Card View
+                if (mobileList) {
+                    mobileList.innerHTML += `
+                        <div class="bg-slate-50 dark:bg-slate-900/90 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 flex justify-between items-center gap-3">
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-xs font-bold text-slate-900 dark:text-white truncate">${e.description}</span>
+                                    <span class="text-[9px] font-bold px-1.5 py-0.2 rounded-full" style="background-color: ${color}20; color: ${color}; border: 1px solid ${color}40">
+                                        ${window.getCatLabel(e.category)}
+                                    </span>
+                                </div>
+                                <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                    <span>${e.date}</span>
+                                    <span>• ${bikeName}</span>
+                                    ${e.odometer !== null ? `<span>• ${e.odometer}km</span>` : ''}
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <span class="text-sm font-black text-slate-900 dark:text-white">€${e.amount.toFixed(2)}</span>
+                                <div class="flex flex-col gap-1">
+                                    <button onclick="editExpense('${e.id}')" class="p-1.5 text-slate-400 hover:text-blue-500 cursor-pointer"><i class="ph-bold ph-pencil-simple text-base"></i></button>
+                                    <button onclick="deleteRecord('expenses', '${e.id}')" class="p-1.5 text-slate-400 hover:text-red-500 cursor-pointer"><i class="ph-bold ph-trash text-base"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
             });
         }
 
@@ -1909,7 +2230,7 @@
             grid.innerHTML = '';
 
             if (compList.length === 0) {
-                grid.innerHTML = `<p class="col-span-3 text-slate-500 text-xs italic p-4">Nog geen onderdelen geregistreerd. Klik op 'Nieuw Onderdeel Monteren'.</p>`;
+                grid.innerHTML = `<p class="col-span-full text-slate-500 text-xs italic p-4 text-center">Nog geen onderdelen geregistreerd. Klik op 'Nieuw Onderdeel Monteren'.</p>`;
                 return;
             }
 
@@ -1918,78 +2239,39 @@
                 const perc = Math.min(Math.round(((c.currentKm || 0) / c.expectedLifespan) * 100), 100);
 
                 grid.innerHTML += `
-                    <div class="pro-card p-5 relative flex flex-col justify-between">
+                    <div class="pro-card p-4 sm:p-5 relative flex flex-col justify-between">
                         <div>
-                            <div class="flex justify-between items-start mb-3">
-                                <div>
+                            <div class="flex justify-between items-start mb-2.5">
+                                <div class="min-w-0 pr-2">
                                     <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">${c.category}</span>
-                                    <h4 class="text-base font-bold text-slate-900 dark:text-white">${c.name}</h4>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5"><i class="ph-bold ph-bicycle"></i> ${bike ? bike.name : 'Onbekend'}</p>
+                                    <h4 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">${c.name}</h4>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate"><i class="ph-bold ph-bicycle"></i> ${bike ? bike.name : 'Onbekend'}</p>
                                 </div>
-                                <div class="flex items-center gap-1">
-                                    <button onclick="openEditComponentModal('${c.id}')" title="Bewerken" class="text-slate-400 hover:text-blue-500 p-1 cursor-pointer transition-colors">
+                                <div class="flex items-center gap-1 flex-shrink-0">
+                                    <button onclick="openEditComponentModal('${c.id}')" title="Bewerken" class="text-slate-400 hover:text-blue-500 p-1.5 cursor-pointer transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center">
                                         <i class="ph-bold ph-pencil-simple text-lg"></i>
                                     </button>
-                                    <button onclick="deleteRecord('components', '${c.id}')" title="Verwijderen" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer transition-colors">
+                                    <button onclick="deleteRecord('components', '${c.id}')" title="Verwijderen" class="text-slate-400 hover:text-red-500 p-1.5 cursor-pointer transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center">
                                         <i class="ph-bold ph-trash text-lg"></i>
                                     </button>
                                 </div>
                             </div>
 
-                            <div class="my-4">
+                            <div class="my-3">
                                 <div class="flex justify-between text-xs font-bold mb-1">
                                     <span class="text-slate-500 dark:text-slate-400">Slijtage</span>
                                     <span class="${perc >= 90 ? 'text-red-500' : 'text-slate-700 dark:text-slate-200'}">${c.currentKm || 0} / ${c.expectedLifespan} km (${perc}%)</span>
                                 </div>
-                                <div class="w-full bg-slate-200 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                                <div class="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
                                     <div class="h-full ${perc >= 90 ? 'bg-red-500' : perc >= 70 ? 'bg-amber-500' : 'bg-blue-500'}" style="width: ${perc}%"></div>
                                 </div>
                             </div>
                         </div>
 
-                        <button onclick="replaceComponent('${c.id}')" class="mt-2 w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold py-2 rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 border border-slate-300 dark:border-slate-700 cursor-pointer">
+                        <button onclick="replaceComponent('${c.id}')" class="mt-2 w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold py-2.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 border border-slate-300 dark:border-slate-700 cursor-pointer min-h-[44px]">
                             <i class="ph-bold ph-arrows-counter-clockwise"></i> Onderdeel Vervangen (Reset Km)
                         </button>
                     </div>
-                `;
-            });
-        }
-
-        function renderExpensesTable(expList) {
-            const tbody = document.getElementById('table-expenses-body');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            if (expList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-xs text-slate-500">Geen uitgaven gevonden.</td></tr>`;
-                return;
-            }
-
-            expList.forEach(e => {
-                const bike = bikes.find(b => b.id === e.bikeId);
-                const color = categoryColors[e.category] || '#94a3b8';
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-100 dark:hover:bg-slate-800/40 transition-colors">
-                        <td class="p-3 text-slate-700 dark:text-slate-300">${e.date}</td>
-                        <td class="p-3 font-semibold text-slate-900 dark:text-white">${bike ? bike.name : '-'}</td>
-                        <td class="p-3">
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background-color: ${color}20; color: ${color}; border: 1px solid ${color}40">
-                                ${window.getCatLabel(e.category)}
-                            </span>
-                        </td>
-                        <td class="p-3 text-slate-800 dark:text-slate-200 font-medium">${e.description}</td>
-                        <td class="p-3 text-right text-slate-500 dark:text-slate-400">${e.odometer !== null ? e.odometer + ' km' : '-'}</td>
-                        <td class="p-3 text-right font-black text-slate-900 dark:text-white">€${e.amount.toFixed(2)}</td>
-                        <td class="p-3 text-center whitespace-nowrap">
-                            <button onclick="editExpense('${e.id}')" title="Bewerken" class="text-slate-400 hover:text-blue-500 p-1 cursor-pointer transition-colors mr-1">
-                                <i class="ph-bold ph-pencil-simple text-base"></i>
-                            </button>
-                            <button onclick="deleteRecord('expenses', '${e.id}')" title="Verwijderen" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer transition-colors">
-                                <i class="ph-bold ph-trash text-base"></i>
-                            </button>
-                        </td>
-                    </tr>
                 `;
             });
         }
@@ -2000,7 +2282,7 @@
             grid.innerHTML = '';
 
             if (bikeList.length === 0) {
-                grid.innerHTML = `<p class="col-span-3 text-slate-500 text-xs italic p-4">Geen fietsen gevonden. Voeg er een toe!</p>`;
+                grid.innerHTML = `<p class="col-span-full text-slate-500 text-xs italic p-4 text-center">Geen fietsen gevonden. Voeg er een toe!</p>`;
                 return;
             }
 
@@ -2011,24 +2293,24 @@
                 const purchaseDateFormatted = b.purchaseDate || (b.createdAt ? b.createdAt.substring(0, 10) : '-');
 
                 grid.innerHTML += `
-                    <div class="pro-card p-6 flex flex-col justify-between">
+                    <div class="pro-card p-4 sm:p-5 flex flex-col justify-between">
                         <div>
-                            <div class="flex justify-between items-start mb-4">
-                                <div>
+                            <div class="flex justify-between items-start mb-3">
+                                <div class="min-w-0 pr-2">
                                     <span class="text-[10px] font-extrabold uppercase tracking-widest bg-blue-500/20 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded border border-blue-500/30">${b.type}</span>
-                                    <h3 class="text-xl font-black text-slate-900 dark:text-white mt-2">${b.name}</h3>
+                                    <h3 class="text-base sm:text-xl font-black text-slate-900 dark:text-white mt-1.5 truncate">${b.name}</h3>
                                 </div>
-                                <div class="flex items-center gap-1">
-                                    <button onclick="openEditBikeModal('${b.id}')" title="Bewerken" class="text-slate-400 hover:text-blue-500 p-1 cursor-pointer transition-colors">
+                                <div class="flex items-center gap-1 flex-shrink-0">
+                                    <button onclick="openEditBikeModal('${b.id}')" title="Bewerken" class="text-slate-400 hover:text-blue-500 p-1.5 cursor-pointer transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center">
                                         <i class="ph-bold ph-pencil-simple text-lg"></i>
                                     </button>
-                                    <button onclick="deleteRecord('bikes', '${b.id}')" title="Verwijderen" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer transition-colors">
+                                    <button onclick="deleteRecord('bikes', '${b.id}')" title="Verwijderen" class="text-slate-400 hover:text-red-500 p-1.5 cursor-pointer transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center">
                                         <i class="ph-bold ph-trash text-lg"></i>
                                     </button>
                                 </div>
                             </div>
 
-                            <div class="space-y-2 border-t border-b border-slate-200 dark:border-slate-800 py-3 my-3 text-xs">
+                            <div class="space-y-1.5 border-t border-b border-slate-200 dark:border-slate-800 py-2.5 my-2.5 text-xs">
                                 <div class="flex justify-between text-slate-500 dark:text-slate-400"><span>Aankoopdatum:</span> <strong class="text-slate-800 dark:text-slate-200">${purchaseDateFormatted}</strong></div>
                                 <div class="flex justify-between text-slate-500 dark:text-slate-400"><span>Aankoopprijs:</span> <strong class="text-slate-800 dark:text-slate-200">€${(b.purchasePrice || 0).toFixed(2)}</strong></div>
                                 <div class="flex justify-between text-slate-500 dark:text-slate-400"><span>Totale Uitgaven:</span> <strong class="text-slate-800 dark:text-slate-200">€${bikeExpenses.toFixed(2)}</strong></div>
@@ -2039,7 +2321,7 @@
 
                         <div class="bg-slate-100 dark:bg-slate-900/90 p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex justify-between items-center mt-2">
                             <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Netto TCO:</span>
-                            <span class="text-lg font-black text-emerald-600 dark:text-emerald-400">€${bikeTCO.toFixed(2)}</span>
+                            <span class="text-base sm:text-lg font-black text-emerald-600 dark:text-emerald-400">€${bikeTCO.toFixed(2)}</span>
                         </div>
                     </div>
                 `;
