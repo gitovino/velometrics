@@ -12,6 +12,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="VeloMetrics">
 
+    <!-- Google Identity Services SDK (Drive API) -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -637,40 +640,54 @@
             <div class="flex justify-between items-center mb-5 border-b border-slate-200 dark:border-slate-800 pb-3">
                 <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <i class="ph-bold ph-google-drive-logo text-emerald-500 dark:text-emerald-400"></i>
-                    <span>Data Synchronisatie & Backup</span>
+                    <span>Google Drive Cloud Sync</span>
                 </h3>
                 <button onclick="closeModal('modal-drive-sync')" class="text-slate-400 hover:text-slate-600 dark:hover:text-white"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
             
             <div class="space-y-4">
-                <!-- Google Drive Cloud Option -->
+                <!-- Direct Google Drive API Cloud Sync -->
                 <div class="bg-slate-50 dark:bg-slate-950/80 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
-                    <h4 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-1">
-                        <i class="ph-bold ph-cloud-arrow-up text-blue-500 dark:text-blue-400"></i> Google Drive Cloud Sync
-                    </h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Sla je gegevens op in een beveiligd JSON-bestand in je eigen Google Drive.</p>
-                    <div class="flex gap-2">
-                        <button onclick="saveToDriveJSON()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-3 rounded-lg text-xs flex-1 flex items-center justify-center gap-1">
-                            <i class="ph-bold ph-upload-simple"></i> Naar Drive
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                            <i class="ph-bold ph-cloud-arrow-up text-blue-500 dark:text-blue-400 text-sm"></i> Directe Drive Cloud Sync
+                        </h4>
+                        <div id="drive-status-badge" class="text-[10px] font-semibold text-slate-400">
+                            Niet verbonden
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-3">Koppel je Google account om `velometrics_backup.json` direct op je Drive op te slaan zonder bestanden handmatig te downloaden.</p>
+                    
+                    <div class="space-y-2">
+                        <input type="text" id="drive-client-id" placeholder="Google OAuth Client ID (Optioneel)" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs font-mono text-slate-800 dark:text-slate-200">
+                        
+                        <button onclick="initGoogleDriveAuth()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow-sm">
+                            <i class="ph-bold ph-google-logo"></i> Koppel met Google Account
                         </button>
-                        <button onclick="loadFromDriveJSON()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-lg text-xs flex-1 flex items-center justify-center gap-1">
-                            <i class="ph-bold ph-download-simple"></i> Van Drive
-                        </button>
+
+                        <div class="flex gap-2 pt-1">
+                            <button onclick="saveToDriveCloud()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-3 rounded-lg text-xs flex-1 flex items-center justify-center gap-1">
+                                <i class="ph-bold ph-upload-simple"></i> Upload na Cloud
+                            </button>
+                            <button onclick="loadFromDriveCloud()" class="bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-3 rounded-lg text-xs flex-1 flex items-center justify-center gap-1 border border-slate-300 dark:border-slate-700">
+                                <i class="ph-bold ph-download-simple"></i> Download van Cloud
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Local Offline File Backup -->
                 <div class="bg-slate-50 dark:bg-slate-950/80 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
-                    <h4 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-1">
-                        <i class="ph-bold ph-floppy-disk text-purple-500 dark:text-purple-400"></i> Lokaal Bestand Backup / Herstel
+                    <h4 class="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5 mb-1">
+                        <i class="ph-bold ph-floppy-disk text-purple-500 dark:text-purple-400 text-sm"></i> Lokaal Bestand Backup (.json)
                     </h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Exporteer je gegevens als `.json` bestand naar je pc/telefoon of herstel een eerdere backup.</p>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-3">Download of importeer handmatig een backupbestand op je harde schijf of telefoon.</p>
                     <div class="flex gap-2">
                         <button onclick="exportLocalBackupJSON()" class="bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-3 rounded-lg text-xs flex-1 flex items-center justify-center gap-1 border border-slate-300 dark:border-slate-700">
-                            <i class="ph-bold ph-export"></i> Exporteer JSON
+                            <i class="ph-bold ph-export"></i> Exporteer Bestand
                         </button>
                         <label class="bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-3 rounded-lg text-xs flex-1 flex items-center justify-center gap-1 border border-slate-300 dark:border-slate-700 cursor-pointer">
-                            <i class="ph-bold ph-file-arrow-up"></i> Importeer JSON
+                            <i class="ph-bold ph-file-arrow-up"></i> Importeer Bestand
                             <input type="file" id="import-json-file" accept=".json" onchange="importLocalBackupJSON(event)" class="hidden">
                         </label>
                     </div>
@@ -686,7 +703,7 @@
             <h3 id="msg-title" class="text-lg font-bold text-slate-900 dark:text-white mb-2">Melding</h3>
             <p id="msg-text" class="text-sm text-slate-500 dark:text-slate-400 mb-6">Bericht...</p>
             <div id="msg-buttons" class="flex justify-center gap-3">
-                <button onclick="closeModal('modal-msg')" id="msg-btn-ok" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-xl w-full">OK</button>
+                <button onclick="closeModal('modal-msg')" id="msg-btn-ok" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-xl w-full text-xs">OK</button>
             </div>
         </div>
     </div>
@@ -708,6 +725,10 @@
         let bikes = [], expenses = [], rides = [], components = [];
         let selectedBikeFilter = 'all';
         let chartTimelineInstance = null, chartCategoryInstance = null;
+
+        // Drive API variables
+        let googleAccessToken = null;
+        let googleTokenClient = null;
 
         // Categories & Styling Config
         const categories = ['Maintenance', 'Parts', 'Gear', 'Upgrades', 'Purchase', 'Insurance', 'Other'];
@@ -888,6 +909,146 @@
             document.getElementById('modal-drive-sync')?.classList.remove('hidden');
         };
 
+        // Google Drive API Integration
+        window.initGoogleDriveAuth = function() {
+            const clientId = document.getElementById('drive-client-id').value || localStorage.getItem('velometrics_gdrive_client_id');
+            
+            if (!clientId) {
+                showMessageModal("Google Client ID Vereist", "Voer een Google OAuth Client ID in om direct verbinding te maken met je Google Drive API.");
+                return;
+            }
+            
+            localStorage.setItem('velometrics_gdrive_client_id', clientId);
+
+            if (typeof google === 'undefined' || !google.accounts) {
+                showMessageModal("Fout", "Google API SDK kon niet geladen worden.");
+                return;
+            }
+
+            googleTokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: clientId,
+                scope: 'https://www.googleapis.com/auth/drive.file',
+                callback: (response) => {
+                    if (response.error) {
+                        console.error("Auth error:", response);
+                        showMessageModal("Inlogfout", "Kon niet verbinden met Google Drive: " + response.error);
+                        return;
+                    }
+                    googleAccessToken = response.access_token;
+                    const badge = document.getElementById('drive-status-badge');
+                    if (badge) badge.innerHTML = `<span class="text-emerald-500 font-bold">✓ Verbonden met Cloud</span>`;
+                    showMessageModal("Verbonden!", "Google Drive account succesvol gekoppeld! Je kunt nu direct uploaden en downloaden.");
+                }
+            });
+
+            googleTokenClient.requestAccessToken({ prompt: 'consent' });
+        };
+
+        window.saveToDriveCloud = async function() {
+            if (!googleAccessToken) {
+                window.initGoogleDriveAuth();
+                return;
+            }
+
+            const backupData = {
+                version: "1.0",
+                exportDate: new Date().toISOString(),
+                bikes, expenses, rides, components
+            };
+
+            const fileContent = JSON.stringify(backupData, null, 2);
+
+            try {
+                // Search if file exists
+                const searchRes = await fetch("https://www.googleapis.com/drive/v3/files?q=name%3D'velometrics_backup.json'+and+trashed%3Dfalse", {
+                    headers: { 'Authorization': 'Bearer ' + googleAccessToken }
+                });
+                const searchData = await searchRes.json();
+
+                let fileId = searchData.files && searchData.files.length > 0 ? searchData.files[0].id : null;
+
+                if (fileId) {
+                    // Patch existing file
+                    await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Authorization': 'Bearer ' + googleAccessToken,
+                            'Content-Type': 'application/json'
+                        },
+                        body: fileContent
+                    });
+                } else {
+                    // Create new file
+                    const metadata = { name: 'velometrics_backup.json', mimeType: 'application/json' };
+                    const form = new FormData();
+                    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+                    form.append('file', new Blob([fileContent], { type: 'application/json' }));
+
+                    await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + googleAccessToken },
+                        body: form
+                    });
+                }
+
+                showMessageModal("Succes!", "Je data is rechtstreeks geüpload naar je Google Drive wolk (velometrics_backup.json)!");
+            } catch (err) {
+                console.error("Drive upload error:", err);
+                showMessageModal("Upload Mislukt", "Fout bij opslaan in Google Drive.");
+            }
+        };
+
+        window.loadFromDriveCloud = async function() {
+            if (!googleAccessToken) {
+                window.initGoogleDriveAuth();
+                return;
+            }
+
+            try {
+                const searchRes = await fetch("https://www.googleapis.com/drive/v3/files?q=name%3D'velometrics_backup.json'+and+trashed%3Dfalse", {
+                    headers: { 'Authorization': 'Bearer ' + googleAccessToken }
+                });
+                const searchData = await searchRes.json();
+
+                if (!searchData.files || searchData.files.length === 0) {
+                    showMessageModal("Niet gevonden", "Geen 'velometrics_backup.json' bestand gevonden op Google Drive.");
+                    return;
+                }
+
+                const fileId = searchData.files[0].id;
+                const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+                    headers: { 'Authorization': 'Bearer ' + googleAccessToken }
+                });
+                const data = await fileRes.json();
+
+                if (data.bikes && data.expenses) {
+                    showMessageModal("Drive Backup Herstellen", "Wil je de cloud-gegevens van Google Drive importeren?", true, async () => {
+                        for (const b of data.bikes) {
+                            await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'bikes'), b);
+                        }
+                        for (const exp of data.expenses) {
+                            await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses'), exp);
+                        }
+                        if (data.rides) {
+                            for (const r of data.rides) {
+                                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'rides'), r);
+                            }
+                        }
+                        if (data.components) {
+                            for (const c of data.components) {
+                                await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'components'), c);
+                            }
+                        }
+                        showMessageModal("Succes", "Gegevens geladen uit Google Drive Cloud!");
+                        closeModal('modal-drive-sync');
+                    });
+                }
+            } catch (err) {
+                console.error("Drive download error:", err);
+                showMessageModal("Download Mislukt", "Fout bij ophalen uit Google Drive.");
+            }
+        };
+
         // Export local JSON Backup
         window.exportLocalBackupJSON = function() {
             const backupData = {
@@ -946,16 +1107,6 @@
                 }
             };
             reader.readAsText(file);
-        };
-
-        // Google Drive Save/Load Functions
-        window.saveToDriveJSON = function() {
-            window.exportLocalBackupJSON();
-            showMessageModal("Google Drive Sync", "Sla het gedownloade 'velometrics_backup.json' bestand op in je Google Drive map om het te delen tussen je PC en Android telefoon.");
-        };
-
-        window.loadFromDriveJSON = function() {
-            document.getElementById('import-json-file')?.click();
         };
 
         // Exposed Global Functions
@@ -1094,6 +1245,13 @@
         async function init() {
             applyTheme(currentTheme);
             populateCategoryDropdown();
+
+            // Load saved Client ID if present
+            const savedClientId = localStorage.getItem('velometrics_gdrive_client_id');
+            if (savedClientId) {
+                const input = document.getElementById('drive-client-id');
+                if (input) input.value = savedClientId;
+            }
 
             // Set current date
             const expDate = document.getElementById('exp-date');
