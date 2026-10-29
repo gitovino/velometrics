@@ -108,7 +108,6 @@
             border-color: rgba(226, 232, 240, 0.8) !important;
         }
 
-        /* Clean select options in Light/Dark mode */
         select option {
             background-color: #0f172a;
             color: #ffffff;
@@ -119,7 +118,6 @@
             color: #0f172a;
         }
 
-        /* Nav Tabs in Light Mode */
         html.light .nav-tab {
             color: #64748b;
         }
@@ -133,20 +131,17 @@
             border-color: rgba(37, 99, 235, 0.3) !important;
         }
 
-        /* Tab Navigation Active State */
         .nav-tab.active {
             background: rgba(37, 99, 235, 0.15);
             color: #3b82f6;
             border-color: rgba(59, 130, 246, 0.4);
         }
 
-        /* Custom Scrollbars */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
-        /* Custom Loading Overlay */
         #loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #0b0f19; z-index: 1000;
@@ -159,6 +154,33 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
+
+    <!-- Immediate Global UI Triggers -->
+    <script>
+        window.openDriveSyncModal = function() {
+            const modal = document.getElementById('modal-drive-sync');
+            if (modal) {
+                modal.classList.remove('hidden');
+            } else {
+                alert("Drive Sync scherm kon niet worden geladen.");
+            }
+        };
+
+        window.closeModal = function(id) {
+            const modal = document.getElementById(id);
+            if (modal) modal.classList.add('hidden');
+        };
+
+        window.switchTab = function(tabName) {
+            document.querySelectorAll('.tab-view').forEach(v => v.classList.add('hidden'));
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+
+            const targetView = document.getElementById(`view-${tabName}`);
+            const targetTab = document.getElementById(`tab-${tabName}`);
+            if (targetView) targetView.classList.remove('hidden');
+            if (targetTab) targetTab.classList.add('active');
+        };
+    </script>
 </head>
 <body class="antialiased min-h-screen bg-mesh flex flex-col selection:bg-blue-600 selection:text-white">
 
@@ -214,12 +236,12 @@
                 </div>
 
                 <!-- Google Drive Sync Button -->
-                <button onclick="openDriveSyncModal()" class="text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-3 py-2 rounded-xl border border-emerald-500/30 transition-all flex items-center gap-1.5 shadow-sm">
+                <button onclick="openDriveSyncModal()" class="text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-3 py-2 rounded-xl border border-emerald-500/30 transition-all flex items-center gap-1.5 shadow-sm cursor-pointer">
                     <i class="ph-bold ph-google-drive-logo text-base"></i> <span data-i18n="drive_sync">Drive Sync</span>
                 </button>
 
                 <!-- Export CSV Button -->
-                <button onclick="exportDataCSV()" class="hidden md:flex text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 transition-all items-center gap-1.5 shadow-sm">
+                <button onclick="exportDataCSV()" class="hidden md:flex text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 transition-all items-center gap-1.5 shadow-sm cursor-pointer">
                     <i class="ph-bold ph-export text-slate-500 dark:text-slate-400 text-sm"></i> <span data-i18n="export">Export</span>
                 </button>
 
@@ -667,7 +689,7 @@
 
                         <div class="flex gap-2 pt-1">
                             <button onclick="saveToDriveCloud()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-3 rounded-lg text-xs flex-1 flex items-center justify-center gap-1">
-                                <i class="ph-bold ph-upload-simple"></i> Upload na Cloud
+                                <i class="ph-bold ph-upload-simple"></i> Upload naar Cloud
                             </button>
                             <button onclick="loadFromDriveCloud()" class="bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-2 px-3 rounded-lg text-xs flex-1 flex items-center justify-center gap-1 border border-slate-300 dark:border-slate-700">
                                 <i class="ph-bold ph-download-simple"></i> Download van Cloud
@@ -905,10 +927,6 @@
             }
         };
 
-        window.openDriveSyncModal = function() {
-            document.getElementById('modal-drive-sync')?.classList.remove('hidden');
-        };
-
         // Google Drive API Integration
         window.initGoogleDriveAuth = function() {
             const clientId = document.getElementById('drive-client-id').value || localStorage.getItem('velometrics_gdrive_client_id');
@@ -959,7 +977,6 @@
             const fileContent = JSON.stringify(backupData, null, 2);
 
             try {
-                // Search if file exists
                 const searchRes = await fetch("https://www.googleapis.com/drive/v3/files?q=name%3D'velometrics_backup.json'+and+trashed%3Dfalse", {
                     headers: { 'Authorization': 'Bearer ' + googleAccessToken }
                 });
@@ -968,7 +985,6 @@
                 let fileId = searchData.files && searchData.files.length > 0 ? searchData.files[0].id : null;
 
                 if (fileId) {
-                    // Patch existing file
                     await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
                         method: 'PATCH',
                         headers: {
@@ -978,7 +994,6 @@
                         body: fileContent
                     });
                 } else {
-                    // Create new file
                     const metadata = { name: 'velometrics_backup.json', mimeType: 'application/json' };
                     const form = new FormData();
                     form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
@@ -1109,7 +1124,6 @@
             reader.readAsText(file);
         };
 
-        // Exposed Global Functions
         window.getCatLabel = function(catKey) {
             const key = `cat_${catKey}`;
             if (translations[currentLang] && translations[currentLang][key]) {
@@ -1145,16 +1159,6 @@
             renderAllViews();
         };
 
-        window.switchTab = function(tabName) {
-            document.querySelectorAll('.tab-view').forEach(v => v.classList.add('hidden'));
-            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-
-            const targetView = document.getElementById(`view-${tabName}`);
-            const targetTab = document.getElementById(`tab-${tabName}`);
-            if (targetView) targetView.classList.remove('hidden');
-            if (targetTab) targetTab.classList.add('active');
-        };
-
         window.openAddBikeModal = function() {
             document.getElementById('modal-bike')?.classList.remove('hidden');
         };
@@ -1168,10 +1172,6 @@
                 });
             }
             document.getElementById('modal-component')?.classList.remove('hidden');
-        };
-
-        window.closeModal = function(id) {
-            document.getElementById(id)?.classList.add('hidden');
         };
 
         window.showMessageModal = function(title, text, isConfirm = false, onConfirm = null) {
@@ -1228,7 +1228,6 @@
             }
         };
 
-        // System preference listener
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
             if (currentTheme === 'system') applyTheme('system');
         });
@@ -1241,25 +1240,21 @@
             if (curVal) sel.value = curVal;
         }
 
-        // App Initialization
         async function init() {
             applyTheme(currentTheme);
             populateCategoryDropdown();
 
-            // Load saved Client ID if present
             const savedClientId = localStorage.getItem('velometrics_gdrive_client_id');
             if (savedClientId) {
                 const input = document.getElementById('drive-client-id');
                 if (input) input.value = savedClientId;
             }
 
-            // Set current date
             const expDate = document.getElementById('exp-date');
             const rideDate = document.getElementById('ride-date');
             if (expDate) expDate.valueAsDate = new Date();
             if (rideDate) rideDate.valueAsDate = new Date();
 
-            // Odometer Unknown toggle
             document.getElementById('exp-odo-unknown')?.addEventListener('change', (e) => {
                 const odoInput = document.getElementById('exp-odometer');
                 if (odoInput) {
@@ -1295,30 +1290,25 @@
             }
         }
 
-        // Realtime Data Sync
         function setupListeners() {
             if (!currentUser) return;
 
-            // Bikes Listener
             onSnapshot(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'bikes'), (snap) => {
                 bikes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 updateBikeDropdowns();
                 renderAllViews();
             }, e => console.error("Bikes error:", e));
 
-            // Expenses Listener
             onSnapshot(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses'), (snap) => {
                 expenses = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(b.date) - new Date(a.date));
                 renderAllViews();
             }, e => console.error("Expenses error:", e));
 
-            // Rides Listener
             onSnapshot(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'rides'), (snap) => {
                 rides = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => new Date(b.date) - new Date(a.date));
                 renderAllViews();
             }, e => console.error("Rides error:", e));
 
-            // Components Listener
             onSnapshot(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'components'), (snap) => {
                 components = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderAllViews();
@@ -1351,7 +1341,6 @@
             renderAllViews();
         });
 
-        // Add Bike Form
         document.getElementById('form-add-bike')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!currentUser) return;
@@ -1369,7 +1358,6 @@
             closeModal('modal-bike');
         });
 
-        // Add Ride Form
         document.getElementById('form-ride')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!currentUser) return;
@@ -1396,7 +1384,6 @@
             document.getElementById('ride-date').valueAsDate = new Date();
         });
 
-        // Add Expense Form
         document.getElementById('form-expense')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!currentUser) return;
@@ -1417,7 +1404,6 @@
             document.getElementById('exp-date').valueAsDate = new Date();
         });
 
-        // Add Component Form
         document.getElementById('form-add-component')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!currentUser) return;
@@ -1434,14 +1420,12 @@
             closeModal('modal-component');
         });
 
-        // Delete Operations
         window.deleteRecord = (col, id) => {
             showMessageModal("Bevestig Verwijdering", "Weet je zeker dat je dit item wilt verwijderen?", true, async () => {
                 await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, col, id));
             });
         };
 
-        // Reset Component Mileage
         window.replaceComponent = (id) => {
             showMessageModal("Onderdeel Vervangen", "Dit zet de tellerstand van dit onderdeel terug naar 0 km. Ga door?", true, async () => {
                 await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'components', id), {
@@ -1450,7 +1434,6 @@
             });
         };
 
-        // Render Everything
         function renderAllViews() {
             const filteredBikes = selectedBikeFilter === 'all' ? bikes : bikes.filter(b => b.id === selectedBikeFilter);
             const filteredExpenses = selectedBikeFilter === 'all' ? expenses : expenses.filter(e => e.bikeId === selectedBikeFilter);
@@ -1508,13 +1491,11 @@
             renderBikesGrid(filteredBikes);
         }
 
-        // Render Charts
         function renderCharts(expData) {
             const isDark = document.documentElement.classList.contains('dark');
             const textColor = isDark ? '#94a3b8' : '#475569';
             const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
 
-            // 1. Timeline Chart
             const monthlyTotals = {};
             [...expData].reverse().forEach(e => {
                 if(!e.date) return;
@@ -1555,7 +1536,6 @@
                 });
             }
 
-            // 2. Category Breakdown Chart
             const catTotals = {};
             expData.forEach(e => {
                 catTotals[e.category] = (catTotals[e.category] || 0) + e.amount;
@@ -1587,7 +1567,6 @@
             }
         }
 
-        // Render Component Wear Alerts Widget on Dashboard
         function renderWearAlerts(comps) {
             const container = document.getElementById('dashboard-wear-alerts');
             if (!container) return;
@@ -1635,7 +1614,6 @@
             });
         }
 
-        // Render Rides Table
         function renderRidesTable(rideList) {
             const tbody = document.getElementById('table-rides-body');
             if (!tbody) return;
@@ -1663,7 +1641,6 @@
             });
         }
 
-        // Render Components Grid
         function renderComponentsGrid(compList) {
             const grid = document.getElementById('components-grid');
             if (!grid) return;
@@ -1709,7 +1686,6 @@
             });
         }
 
-        // Render Expenses Table
         function renderExpensesTable(expList) {
             const tbody = document.getElementById('table-expenses-body');
             if (!tbody) return;
@@ -1744,7 +1720,6 @@
             });
         }
 
-        // Render Bikes Grid
         function renderBikesGrid(bikeList) {
             const grid = document.getElementById('bikes-grid');
             if (!grid) return;
@@ -1788,7 +1763,6 @@
             });
         }
 
-        // CSV Export Feature
         window.exportDataCSV = function() {
             let csvContent = "data:text/csv;charset=utf-8,";
             csvContent += "Type,Datum,Fiets,Categorie/Type,Omschrijving,Afstand_km,Bedrag_EUR\n";
@@ -1812,7 +1786,6 @@
             document.body.removeChild(link);
         };
 
-        // PWA Install Prompt
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -1828,8 +1801,16 @@
             }
         });
 
-        // Run App
         window.onload = init;
     </script>
 </body>
 </html>
+```
+
+### 🚀 Hoe test je dit op GitHub Pages:
+1. Kopieer de vernieuwde code hierboven en plak deze in je `index.html` op GitHub.
+2. Sla de wijziging op (**Commit changes**).
+3. Open de live site op GitHub Pages en voer een **Hard Refresh** uit om de oude cache van je browser te legen:
+   * **PC**: Druk op `Ctrl + Shift + R` (of `Cmd + Shift + R` op Mac).
+   * **Mobiel**: Sluit de browser-tab volledig en open de link opnieuw.
+4. Klik op de knop **"Drive Sync"**: het pop-up scherm verschijnt nu direct!
