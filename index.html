@@ -366,9 +366,11 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="pro-card p-5 lg:col-span-1">
                     <h3 class="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-                        <i class="ph-bold ph-plus-circle text-blue-500 dark:text-blue-400 text-lg"></i> <span data-i18n="log_ride_title">Rit Registreren</span>
+                        <i class="ph-bold ph-plus-circle text-blue-500 dark:text-blue-400 text-lg"></i> 
+                        <span id="heading-ride-form" data-i18n="log_ride_title">Rit Registreren</span>
                     </h3>
                     <form id="form-ride" class="space-y-4">
+                        <input type="hidden" id="ride-edit-id" value="">
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_bike">Fiets</label>
                             <select id="ride-bike-id" required class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
@@ -404,9 +406,14 @@
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_notes">Notities / Route</label>
                             <input type="text" id="ride-notes" placeholder="Bijv. Avondrit rond het meer" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
                         </div>
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 cursor-pointer">
-                            <i class="ph-bold ph-plus-circle text-lg"></i> <span data-i18n="btn_save_ride">Rit Opslaan & Teller Vernieuwen</span>
-                        </button>
+                        <div class="flex gap-2">
+                            <button type="button" id="btn-cancel-ride" onclick="cancelRideEdit()" class="hidden bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-3 px-4 rounded-xl text-xs transition-all cursor-pointer">
+                                Annuleren
+                            </button>
+                            <button type="submit" id="btn-save-ride-el" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 cursor-pointer">
+                                <i class="ph-bold ph-plus-circle text-lg"></i> <span id="btn-ride-text" data-i18n="btn_save_ride">Rit Opslaan & Teller Vernieuwen</span>
+                            </button>
+                        </div>
                     </form>
                 </div>
 
@@ -439,7 +446,7 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/80 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
                 <div>
                     <h3 class="text-lg font-bold text-slate-900 dark:text-white" data-i18n="components_title">Onderdeelslijtage & Levensduur</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400" data-i18n="components_sub">Volg de de kilometerstand van individuele onderdelen</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400" data-i18n="components_sub">Volg de kilometerstand van individuele onderdelen</p>
                 </div>
                 <button onclick="openAddComponentModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer">
                     <i class="ph-bold ph-plus"></i> <span data-i18n="btn_add_component">Nieuw Onderdeel Monteren</span>
@@ -455,9 +462,11 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="pro-card p-5 lg:col-span-1">
                     <h3 class="text-base font-bold text-slate-900 dark:text-white mb-4 border-b border-slate-200 dark:border-slate-800 pb-3 flex items-center gap-2">
-                        <i class="ph-bold ph-plus-circle text-blue-500 dark:text-blue-400"></i> <span data-i18n="expense_form_title">Uitgave Loggen</span>
+                        <i class="ph-bold ph-plus-circle text-blue-500 dark:text-blue-400"></i> 
+                        <span id="heading-expense-form" data-i18n="expense_form_title">Uitgave Loggen</span>
                     </h3>
                     <form id="form-expense" class="space-y-4">
+                        <input type="hidden" id="exp-edit-id" value="">
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_bike">Fiets</label>
                             <select id="exp-bike-id" required class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
@@ -493,9 +502,14 @@
                             </div>
                             <input type="number" id="exp-odometer" placeholder="Optioneel" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none disabled:opacity-40">
                         </div>
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 cursor-pointer">
-                            <i class="ph-bold ph-floppy-disk text-lg"></i> <span data-i18n="btn_save_expense">Uitgave Opslaan</span>
-                        </button>
+                        <div class="flex gap-2">
+                            <button type="button" id="btn-cancel-expense" onclick="cancelExpenseEdit()" class="hidden bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold py-3 px-4 rounded-xl text-xs transition-all cursor-pointer">
+                                Annuleren
+                            </button>
+                            <button type="submit" id="btn-save-expense-el" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 cursor-pointer">
+                                <i class="ph-bold ph-floppy-disk text-lg"></i> <span id="btn-expense-text" data-i18n="btn_save_expense">Uitgave Opslaan</span>
+                            </button>
+                        </div>
                     </form>
                 </div>
 
@@ -529,7 +543,7 @@
             <div class="flex justify-between items-center bg-white/80 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
                 <div>
                     <h3 class="text-lg font-bold text-slate-900 dark:text-white" data-i18n="bikes_title">Fietsencollectie & TCO</h3>
-                    <p class="text-xs text-slate-500 dark:text-slate-400" data-i18n="bikes_sub">Beheer aanschafwaarden, geschatte restwaarden en fietsprofielen</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400" data-i18n="bikes_sub">Beheer aanschafwaarden, restwaarden en datums</p>
                 </div>
                 <button onclick="openAddBikeModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer">
                     <i class="ph-bold ph-plus"></i> <span data-i18n="btn_add_bike">Nieuwe Fiets Toevoegen</span>
@@ -542,14 +556,18 @@
 
     </main>
 
-    <!-- Modal: Add Bike -->
+    <!-- Modal: Add / Edit Bike -->
     <div id="modal-bike" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 text-slate-800 dark:text-slate-200">
             <div class="flex justify-between items-center mb-5 border-b border-slate-200 dark:border-slate-800 pb-3">
-                <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="ph-bold ph-bicycle text-blue-500"></i> <span data-i18n="modal_add_bike">Fiets Toevoegen</span></h3>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="ph-bold ph-bicycle text-blue-500"></i> 
+                    <span id="modal-bike-title" data-i18n="modal_add_bike">Fiets Toevoegen</span>
+                </h3>
                 <button onclick="closeModal('modal-bike')" class="text-slate-400 hover:text-slate-600 dark:hover:text-white"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
             <form id="form-add-bike" class="space-y-4">
+                <input type="hidden" id="bike-edit-id" value="">
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_bike_name">Naam / Model</label>
                     <input type="text" id="bike-name" required placeholder="Bijv. Norta B3040" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
@@ -566,35 +584,43 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_start_odo">Startstanden (km)</label>
-                        <input type="number" id="bike-start-odo" value="0" min="0" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_purchase_date">Aankoopdatum</label>
+                        <input type="date" id="bike-purchase-date" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_start_odo">Startstand (km)</label>
+                        <input type="number" id="bike-start-odo" value="0" min="0" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
+                    </div>
+                    <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_purchase_price">Aankoopprijs (€)</label>
                         <input type="number" id="bike-purchase-price" value="0" min="0" step="0.01" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_resale_val">Geschatte Restwaarde (€)</label>
-                        <input type="number" id="bike-resale-value" value="0" min="0" step="0.01" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
-                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_resale_val">Geschatte Restwaarde (€)</label>
+                    <input type="number" id="bike-resale-value" value="0" min="0" step="0.01" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
                 </div>
                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 mt-2 cursor-pointer">
-                    <i class="ph-bold ph-plus"></i> <span data-i18n="btn_save_bike">Fiets Opslaan</span>
+                    <i class="ph-bold ph-plus"></i> <span id="btn-bike-submit-text" data-i18n="btn_save_bike">Fiets Opslaan</span>
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- Modal: Add Component -->
+    <!-- Modal: Add / Edit Component -->
     <div id="modal-component" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 text-slate-800 dark:text-slate-200">
             <div class="flex justify-between items-center mb-5 border-b border-slate-200 dark:border-slate-800 pb-3">
-                <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2"><i class="ph-bold ph-wrench text-blue-500"></i> <span data-i18n="modal_add_comp">Onderdeel Monteren</span></h3>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="ph-bold ph-wrench text-blue-500"></i> 
+                    <span id="modal-comp-title" data-i18n="modal_add_comp">Onderdeel Monteren</span>
+                </h3>
                 <button onclick="closeModal('modal-component')" class="text-slate-400 hover:text-slate-600 dark:hover:text-white"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
             <form id="form-add-component" class="space-y-4">
+                <input type="hidden" id="comp-edit-id" value="">
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_bike">Fiets</label>
                     <select id="comp-bike-id" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
@@ -617,12 +643,12 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_lifespan">Verwachte Levensduur (km)</label>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1" data-i18n="label_lifespan">Levensduur (km)</label>
                         <input type="number" id="comp-lifespan" value="3000" min="100" step="100" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-2.5 text-sm font-medium text-slate-900 dark:text-white focus:border-blue-500 outline-none">
                     </div>
                 </div>
                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 mt-2 cursor-pointer">
-                    <i class="ph-bold ph-plus"></i> <span data-i18n="btn_save_comp">Onderdeel Opslaan</span>
+                    <i class="ph-bold ph-plus"></i> <span id="btn-comp-submit-text" data-i18n="btn_save_comp">Onderdeel Opslaan</span>
                 </button>
             </form>
         </div>
@@ -756,10 +782,10 @@
                 log_ride_title: "Rit Registreren", label_bike: "Fiets", select_bike: "Selecteer fiets...", label_date: "Datum", label_distance: "Afstand (km)", label_ride_type: "Type Rit", label_duration: "Duur (minuten)", label_notes: "Notities / Route", btn_save_ride: "Rit Opslaan & Teller Vernieuwen",
                 type_commute: "Woon-werk", type_sport: "Sport / Training", type_leisure: "Recreatie", type_utility: "Boodschappen",
                 rides_history_title: "Geregistreerde Ritten", th_date: "Datum", th_bike: "Fiets", th_type: "Type", th_distance: "Afstand", th_duration: "Duur", th_action: "Actie",
-                components_title: "Onderdeelslijtage & Levensduur", components_sub: "Volg de exacte kilometerstand van individuele fietsonderdelen", btn_add_component: "Nieuw Onderdeel Monteren",
+                components_title: "Onderdeelslijtage & Levensduur", components_sub: "Volg de kilometerstand van individuele onderdelen", btn_add_component: "Nieuw Onderdeel Monteren",
                 expense_form_title: "Uitgave Loggen", label_amount: "Bedrag (€)", label_category: "Categorie", label_description: "Omschrijving", label_odometer: "Tellerstand (km)", label_unknown: "Onbekend", btn_save_expense: "Uitgave Opslaan", expense_history_title: "Uitgavenhistorie", th_category: "Categorie", th_desc: "Omschrijving", th_odo: "Tellerstand", th_amount: "Bedrag",
-                bikes_title: "Fietsencollectie & TCO", bikes_sub: "Beheer aanschafwaarden, geschatte restwaarden en fietsprofielen", btn_add_bike: "Nieuwe Fiets Toevoegen", modal_add_bike: "Fiets Toevoegen", label_bike_name: "Naam / Model", label_bike_type: "Type", label_start_odo: "Startstanden (km)", label_purchase_price: "Aankoopprijs (€)", label_resale_val: "Geschatte Restwaarde (€)", btn_save_bike: "Fiets Opslaan",
-                modal_add_comp: "Onderdeel Monteren", label_comp_name: "Naam Onderdeel", label_comp_category: "Categorie", label_lifespan: "Verwachte Levensduur (km)", btn_save_comp: "Onderdeel Opslaan",
+                bikes_title: "Fietsencollectie & TCO", bikes_sub: "Beheer aanschafwaarden, restwaarden en datums", btn_add_bike: "Nieuwe Fiets Toevoegen", modal_add_bike: "Fiets Toevoegen", label_bike_name: "Naam / Model", label_bike_type: "Type", label_purchase_date: "Aankoopdatum", label_start_odo: "Startstand (km)", label_purchase_price: "Aankoopprijs (€)", label_resale_val: "Geschatte Restwaarde (€)", btn_save_bike: "Fiets Opslaan",
+                modal_add_comp: "Onderdeel Monteren", label_comp_name: "Naam Onderdeel", label_comp_category: "Categorie", label_lifespan: "Levensduur (km)", btn_save_comp: "Onderdeel Opslaan",
                 cat_Maintenance: "Onderhoud & Service", cat_Parts: "Onderdelen & Componenten", cat_Gear: "Accessoires & Kleding", cat_Upgrades: "Upgrades", cat_Purchase: "Aankoop Fiets", cat_Insurance: "Verzekering", cat_Other: "Overig"
             },
             en: {
@@ -775,8 +801,8 @@
                 rides_history_title: "Recorded Rides", th_date: "Date", th_bike: "Bike", th_type: "Type", th_distance: "Distance", th_duration: "Duration", th_action: "Action",
                 components_title: "Component Wear & Lifespan", components_sub: "Track exact mileage for individual components", btn_add_component: "Mount New Component",
                 expense_form_title: "Log Expense", label_amount: "Amount (€)", label_category: "Category", label_description: "Description", label_odometer: "Odometer (km)", label_unknown: "Unknown", btn_save_expense: "Save Expense", expense_history_title: "Expense History", th_category: "Category", th_desc: "Description", th_odo: "Odometer", th_amount: "Amount",
-                bikes_title: "Bike Collection & TCO", bikes_sub: "Manage purchase prices, estimated resale value and bike profiles", btn_add_bike: "Add New Bike", modal_add_bike: "Add Bike", label_bike_name: "Name / Model", label_bike_type: "Type", label_start_odo: "Start Odometer (km)", label_purchase_price: "Purchase Price (€)", label_resale_val: "Est. Resale Value (€)", btn_save_bike: "Save Bike",
-                modal_add_comp: "Mount Component", label_comp_name: "Component Name", label_comp_category: "Category", label_lifespan: "Expected Lifespan (km)", btn_save_comp: "Save Component",
+                bikes_title: "Bike Collection & TCO", bikes_sub: "Manage purchase prices, resale value and dates", btn_add_bike: "Add New Bike", modal_add_bike: "Add Bike", label_bike_name: "Name / Model", label_bike_type: "Type", label_purchase_date: "Purchase Date", label_start_odo: "Start Odometer (km)", label_purchase_price: "Purchase Price (€)", label_resale_val: "Est. Resale Value (€)", btn_save_bike: "Save Bike",
+                modal_add_comp: "Mount Component", label_comp_name: "Component Name", label_comp_category: "Category", label_lifespan: "Lifespan (km)", btn_save_comp: "Save Component",
                 cat_Maintenance: "Maintenance & Service", cat_Parts: "Parts & Components", cat_Gear: "Gear & Apparel", cat_Upgrades: "Upgrades", cat_Purchase: "Bike Purchase", cat_Insurance: "Insurance", cat_Other: "Other"
             }
         };
@@ -854,12 +880,39 @@
             if (curVal) expCat.value = curVal;
         }
 
+        // =========================================================================
+        // MODAL OPENERS (ADD & EDIT)
+        // =========================================================================
         window.openAddBikeModal = function() {
+            document.getElementById('bike-edit-id').value = '';
+            document.getElementById('form-add-bike').reset();
+            document.getElementById('bike-purchase-date').valueAsDate = new Date();
+            document.getElementById('modal-bike-title').innerText = translations[currentLang].modal_add_bike;
+            document.getElementById('btn-bike-submit-text').innerText = translations[currentLang].btn_save_bike;
+            const modal = document.getElementById('modal-bike');
+            if (modal) modal.classList.remove('hidden');
+        };
+
+        window.openEditBikeModal = function(id) {
+            const b = bikes.find(item => item.id === id);
+            if (!b) return;
+            document.getElementById('bike-edit-id').value = b.id;
+            document.getElementById('bike-name').value = b.name || '';
+            document.getElementById('bike-type').value = b.type || 'Road';
+            document.getElementById('bike-purchase-date').value = b.purchaseDate || (b.createdAt ? b.createdAt.substring(0, 10) : new Date().toISOString().substring(0, 10));
+            document.getElementById('bike-start-odo').value = b.startOdo || 0;
+            document.getElementById('bike-purchase-price').value = b.purchasePrice || 0;
+            document.getElementById('bike-resale-value').value = b.resaleValue || 0;
+
+            document.getElementById('modal-bike-title').innerText = currentLang === 'nl' ? "Fiets Bewerken" : "Edit Bike";
+            document.getElementById('btn-bike-submit-text').innerText = currentLang === 'nl' ? "Fiets Bijwerken" : "Update Bike";
             const modal = document.getElementById('modal-bike');
             if (modal) modal.classList.remove('hidden');
         };
 
         window.openAddComponentModal = function() {
+            document.getElementById('comp-edit-id').value = '';
+            document.getElementById('form-add-component').reset();
             const compBikeSel = document.getElementById('comp-bike-id');
             if (compBikeSel) {
                 compBikeSel.innerHTML = bikes.length === 0 ? `<option value="" disabled selected>Geen fietsen beschikbaar</option>` : '';
@@ -867,8 +920,90 @@
                     compBikeSel.innerHTML += `<option value="${b.id}">${b.name}</option>`;
                 });
             }
+            document.getElementById('modal-comp-title').innerText = translations[currentLang].modal_add_comp;
+            document.getElementById('btn-comp-submit-text').innerText = translations[currentLang].btn_save_comp;
             const modal = document.getElementById('modal-component');
             if (modal) modal.classList.remove('hidden');
+        };
+
+        window.openEditComponentModal = function(id) {
+            const c = components.find(item => item.id === id);
+            if (!c) return;
+            window.openAddComponentModal();
+            document.getElementById('comp-edit-id').value = c.id;
+            document.getElementById('comp-bike-id').value = c.bikeId || '';
+            document.getElementById('comp-name').value = c.name || '';
+            document.getElementById('comp-category').value = c.category || 'Chain';
+            document.getElementById('comp-lifespan').value = c.expectedLifespan || 3000;
+
+            document.getElementById('modal-comp-title').innerText = currentLang === 'nl' ? "Onderdeel Bewerken" : "Edit Component";
+            document.getElementById('btn-comp-submit-text').innerText = currentLang === 'nl' ? "Onderdeel Bijwerken" : "Update Component";
+        };
+
+        // Edit Ride Handlers
+        window.editRide = function(id) {
+            const r = rides.find(item => item.id === id);
+            if (!r) return;
+            switchTab('rides');
+            document.getElementById('ride-edit-id').value = r.id;
+            document.getElementById('ride-bike-id').value = r.bikeId || '';
+            document.getElementById('ride-date').value = r.date || '';
+            document.getElementById('ride-distance').value = r.distance || '';
+            document.getElementById('ride-type').value = r.rideType || 'Commute';
+            document.getElementById('ride-duration').value = r.duration || '';
+            document.getElementById('ride-notes').value = r.notes || '';
+
+            document.getElementById('btn-cancel-ride').classList.remove('hidden');
+            document.getElementById('btn-ride-text').innerText = currentLang === 'nl' ? "Rit Bijwerken" : "Update Ride";
+            document.getElementById('heading-ride-form').innerText = currentLang === 'nl' ? "Rit Bewerken" : "Edit Ride";
+        };
+
+        window.cancelRideEdit = function() {
+            document.getElementById('ride-edit-id').value = '';
+            document.getElementById('form-ride').reset();
+            document.getElementById('ride-date').valueAsDate = new Date();
+            document.getElementById('btn-cancel-ride').classList.add('hidden');
+            document.getElementById('btn-ride-text').innerText = translations[currentLang].btn_save_ride;
+            document.getElementById('heading-ride-form').innerText = translations[currentLang].log_ride_title;
+        };
+
+        // Edit Expense Handlers
+        window.editExpense = function(id) {
+            const e = expenses.find(item => item.id === id);
+            if (!e) return;
+            switchTab('expenses');
+            document.getElementById('exp-edit-id').value = e.id;
+            document.getElementById('exp-bike-id').value = e.bikeId || '';
+            document.getElementById('exp-date').value = e.date || '';
+            document.getElementById('exp-amount').value = e.amount || '';
+            document.getElementById('exp-category').value = e.category || 'Maintenance';
+            document.getElementById('exp-description').value = e.description || '';
+
+            const odoInput = document.getElementById('exp-odometer');
+            const odoUnknown = document.getElementById('exp-odo-unknown');
+            if (e.odometer !== null && e.odometer !== undefined && e.odometer !== '') {
+                odoUnknown.checked = false;
+                odoInput.disabled = false;
+                odoInput.value = e.odometer;
+            } else {
+                odoUnknown.checked = true;
+                odoInput.disabled = true;
+                odoInput.value = '';
+            }
+
+            document.getElementById('btn-cancel-expense').classList.remove('hidden');
+            document.getElementById('btn-expense-text').innerText = currentLang === 'nl' ? "Uitgave Bijwerken" : "Update Expense";
+            document.getElementById('heading-expense-form').innerText = currentLang === 'nl' ? "Uitgave Bewerken" : "Edit Expense";
+        };
+
+        window.cancelExpenseEdit = function() {
+            document.getElementById('exp-edit-id').value = '';
+            document.getElementById('form-expense').reset();
+            document.getElementById('exp-date').valueAsDate = new Date();
+            document.getElementById('exp-odometer').disabled = false;
+            document.getElementById('btn-cancel-expense').classList.add('hidden');
+            document.getElementById('btn-expense-text').innerText = translations[currentLang].btn_save_expense;
+            document.getElementById('heading-expense-form').innerText = translations[currentLang].expense_form_title;
         };
 
         function saveLocalData() {
@@ -901,8 +1036,10 @@
 
             const expDate = document.getElementById('exp-date');
             const rideDate = document.getElementById('ride-date');
+            const bikePDate = document.getElementById('bike-purchase-date');
             if (expDate) expDate.valueAsDate = new Date();
             if (rideDate) rideDate.valueAsDate = new Date();
+            if (bikePDate) bikePDate.valueAsDate = new Date();
 
             document.getElementById('exp-odo-unknown')?.addEventListener('change', (e) => {
                 const odoInput = document.getElementById('exp-odometer');
@@ -982,45 +1119,74 @@
         }
 
         // =========================================================================
-        // FORMULIEREN (LOCAL-FIRST DIRECT OPSLAAN + CLOUD SYNC OP ACHTERGROND)
+        // FORM SUBMIT HANDLERS (OPSLAAN & BIJWERKEN)
         // =========================================================================
         document.getElementById('form-add-bike')?.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const editId = document.getElementById('bike-edit-id').value;
             const name = document.getElementById('bike-name').value;
             const type = document.getElementById('bike-type').value;
+            const purchaseDate = document.getElementById('bike-purchase-date').value || new Date().toISOString().substring(0, 10);
             const startOdo = parseInt(document.getElementById('bike-start-odo').value) || 0;
             const purchasePrice = parseFloat(document.getElementById('bike-purchase-price').value) || 0;
             const resaleValue = parseFloat(document.getElementById('bike-resale-value').value) || 0;
 
-            const bikeObj = { 
-                id: 'bike_' + Date.now(), 
-                name, 
-                type, 
-                startOdo, 
-                purchasePrice, 
-                resaleValue, 
-                createdAt: new Date().toISOString() 
-            };
+            if (editId) {
+                const existing = bikes.find(b => b.id === editId);
+                if (existing) {
+                    existing.name = name;
+                    existing.type = type;
+                    existing.purchaseDate = purchaseDate;
+                    existing.startOdo = startOdo;
+                    existing.purchasePrice = purchasePrice;
+                    existing.resaleValue = resaleValue;
+                }
+                saveLocalData();
+                updateBikeDropdowns();
+                renderAllViews();
+                closeModal('modal-bike');
 
-            bikes.push(bikeObj);
-            saveLocalData();
-            updateBikeDropdowns();
-            renderAllViews();
+                if (!useLocalStorage && currentUser && db) {
+                    try {
+                        await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'bikes', editId), {
+                            name, type, purchaseDate, startOdo, purchasePrice, resaleValue
+                        });
+                    } catch (err) {
+                        console.warn("Cloud sync update bike fout:", err);
+                    }
+                }
+            } else {
+                const bikeObj = { 
+                    id: 'bike_' + Date.now(), 
+                    name, 
+                    type, 
+                    purchaseDate,
+                    startOdo, 
+                    purchasePrice, 
+                    resaleValue, 
+                    createdAt: new Date().toISOString() 
+                };
 
-            e.target.reset();
-            closeModal('modal-bike');
+                bikes.push(bikeObj);
+                saveLocalData();
+                updateBikeDropdowns();
+                renderAllViews();
+                closeModal('modal-bike');
 
-            if (!useLocalStorage && currentUser && db) {
-                try {
-                    await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'bikes'), bikeObj);
-                } catch (err) {
-                    console.warn("Cloud sync fout bij fiets toevoegen:", err);
+                if (!useLocalStorage && currentUser && db) {
+                    try {
+                        await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'bikes'), bikeObj);
+                    } catch (err) {
+                        console.warn("Cloud sync add bike fout:", err);
+                    }
                 }
             }
+            e.target.reset();
         });
 
         document.getElementById('form-ride')?.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const editId = document.getElementById('ride-edit-id').value;
             const bikeId = document.getElementById('ride-bike-id').value;
             const date = document.getElementById('ride-date').value;
             const distance = parseFloat(document.getElementById('ride-distance').value) || 0;
@@ -1028,48 +1194,91 @@
             const duration = parseInt(document.getElementById('ride-duration').value) || 0;
             const notes = document.getElementById('ride-notes').value;
 
-            const rideObj = { 
-                id: 'ride_' + Date.now(), 
-                bikeId, 
-                date, 
-                distance, 
-                rideType, 
-                duration, 
-                notes, 
-                createdAt: new Date().toISOString() 
-            };
+            if (editId) {
+                const existing = rides.find(r => r.id === editId);
+                if (existing) {
+                    const oldDistance = existing.distance || 0;
+                    const oldBikeId = existing.bikeId;
+                    existing.bikeId = bikeId;
+                    existing.date = date;
+                    existing.distance = distance;
+                    existing.rideType = rideType;
+                    existing.duration = duration;
+                    existing.notes = notes;
 
-            rides.unshift(rideObj);
-
-            components.forEach(comp => {
-                if (comp.bikeId === bikeId) {
-                    comp.currentKm = (comp.currentKm || 0) + distance;
-                }
-            });
-
-            saveLocalData();
-            renderAllViews();
-
-            e.target.reset();
-            document.getElementById('ride-date').valueAsDate = new Date();
-
-            if (!useLocalStorage && currentUser && db) {
-                try {
-                    await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'rides'), rideObj);
-                    const bikeComponents = components.filter(c => c.bikeId === bikeId);
-                    for (const comp of bikeComponents) {
-                        await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'components', comp.id), {
-                            currentKm: comp.currentKm
+                    if (oldBikeId === bikeId) {
+                        const diff = distance - oldDistance;
+                        components.forEach(c => {
+                            if (c.bikeId === bikeId) c.currentKm = Math.max(0, (c.currentKm || 0) + diff);
+                        });
+                    } else {
+                        components.forEach(c => {
+                            if (c.bikeId === oldBikeId) c.currentKm = Math.max(0, (c.currentKm || 0) - oldDistance);
+                            if (c.bikeId === bikeId) c.currentKm = (c.currentKm || 0) + distance;
                         });
                     }
-                } catch (err) {
-                    console.warn("Cloud sync fout bij rit opslaan:", err);
+                }
+                saveLocalData();
+                renderAllViews();
+                cancelRideEdit();
+
+                if (!useLocalStorage && currentUser && db) {
+                    try {
+                        await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'rides', editId), {
+                            bikeId, date, distance, rideType, duration, notes
+                        });
+                        for (const comp of components) {
+                            await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'components', comp.id), {
+                                currentKm: comp.currentKm
+                            });
+                        }
+                    } catch (err) {
+                        console.warn("Cloud sync update ride fout:", err);
+                    }
+                }
+            } else {
+                const rideObj = { 
+                    id: 'ride_' + Date.now(), 
+                    bikeId, 
+                    date, 
+                    distance, 
+                    rideType, 
+                    duration, 
+                    notes, 
+                    createdAt: new Date().toISOString() 
+                };
+
+                rides.unshift(rideObj);
+
+                components.forEach(comp => {
+                    if (comp.bikeId === bikeId) {
+                        comp.currentKm = (comp.currentKm || 0) + distance;
+                    }
+                });
+
+                saveLocalData();
+                renderAllViews();
+                cancelRideEdit();
+
+                if (!useLocalStorage && currentUser && db) {
+                    try {
+                        await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'rides'), rideObj);
+                        const bikeComponents = components.filter(c => c.bikeId === bikeId);
+                        for (const comp of bikeComponents) {
+                            await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'components', comp.id), {
+                                currentKm: comp.currentKm
+                            });
+                        }
+                    } catch (err) {
+                        console.warn("Cloud sync add ride fout:", err);
+                    }
                 }
             }
         });
 
         document.getElementById('form-expense')?.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const editId = document.getElementById('exp-edit-id').value;
             const bikeId = document.getElementById('exp-bike-id').value;
             const date = document.getElementById('exp-date').value;
             const category = document.getElementById('exp-category').value;
@@ -1079,64 +1288,110 @@
             const odoVal = document.getElementById('exp-odometer').value;
             const odometer = isUnknown || odoVal === '' ? null : parseInt(odoVal, 10);
 
-            const expObj = { 
-                id: 'exp_' + Date.now(), 
-                bikeId, 
-                date, 
-                category, 
-                description, 
-                amount, 
-                odometer, 
-                createdAt: new Date().toISOString() 
-            };
+            if (editId) {
+                const existing = expenses.find(item => item.id === editId);
+                if (existing) {
+                    existing.bikeId = bikeId;
+                    existing.date = date;
+                    existing.category = category;
+                    existing.description = description;
+                    existing.amount = amount;
+                    existing.odometer = odometer;
+                }
+                saveLocalData();
+                renderAllViews();
+                cancelExpenseEdit();
 
-            expenses.unshift(expObj);
-            saveLocalData();
-            renderAllViews();
+                if (!useLocalStorage && currentUser && db) {
+                    try {
+                        await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses', editId), {
+                            bikeId, date, category, description, amount, odometer
+                        });
+                    } catch (err) {
+                        console.warn("Cloud sync update expense fout:", err);
+                    }
+                }
+            } else {
+                const expObj = { 
+                    id: 'exp_' + Date.now(), 
+                    bikeId, 
+                    date, 
+                    category, 
+                    description, 
+                    amount, 
+                    odometer, 
+                    createdAt: new Date().toISOString() 
+                };
 
-            e.target.reset();
-            document.getElementById('exp-date').valueAsDate = new Date();
+                expenses.unshift(expObj);
+                saveLocalData();
+                renderAllViews();
+                cancelExpenseEdit();
 
-            if (!useLocalStorage && currentUser && db) {
-                try {
-                    await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses'), expObj);
-                } catch (err) {
-                    console.warn("Cloud sync fout bij uitgave opslaan:", err);
+                if (!useLocalStorage && currentUser && db) {
+                    try {
+                        await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses'), expObj);
+                    } catch (err) {
+                        console.warn("Cloud sync add expense fout:", err);
+                    }
                 }
             }
         });
 
         document.getElementById('form-add-component')?.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const editId = document.getElementById('comp-edit-id').value;
             const bikeId = document.getElementById('comp-bike-id').value;
             const name = document.getElementById('comp-name').value;
             const category = document.getElementById('comp-category').value;
             const expectedLifespan = parseInt(document.getElementById('comp-lifespan').value) || 3000;
 
-            const compObj = { 
-                id: 'comp_' + Date.now(), 
-                bikeId, 
-                name, 
-                category, 
-                expectedLifespan, 
-                currentKm: 0, 
-                createdAt: new Date().toISOString() 
-            };
+            if (editId) {
+                const existing = components.find(c => c.id === editId);
+                if (existing) {
+                    existing.bikeId = bikeId;
+                    existing.name = name;
+                    existing.category = category;
+                    existing.expectedLifespan = expectedLifespan;
+                }
+                saveLocalData();
+                renderAllViews();
+                closeModal('modal-component');
 
-            components.push(compObj);
-            saveLocalData();
-            renderAllViews();
+                if (!useLocalStorage && currentUser && db) {
+                    try {
+                        await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'components', editId), {
+                            bikeId, name, category, expectedLifespan
+                        });
+                    } catch (err) {
+                        console.warn("Cloud sync update comp fout:", err);
+                    }
+                }
+            } else {
+                const compObj = { 
+                    id: 'comp_' + Date.now(), 
+                    bikeId, 
+                    name, 
+                    category, 
+                    expectedLifespan, 
+                    currentKm: 0, 
+                    createdAt: new Date().toISOString() 
+                };
 
-            e.target.reset();
-            closeModal('modal-component');
+                components.push(compObj);
+                saveLocalData();
+                renderAllViews();
+                closeModal('modal-component');
 
-            if (!useLocalStorage && currentUser && db) {
-                try {
-                    await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'components'), compObj);
-                } catch (err) {
-                    console.warn("Cloud sync fout bij onderdeel toevoegen:", err);
+                if (!useLocalStorage && currentUser && db) {
+                    try {
+                        await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'components'), compObj);
+                    } catch (err) {
+                        console.warn("Cloud sync add comp fout:", err);
+                    }
                 }
             }
+            e.target.reset();
         });
 
         window.deleteRecord = (col, id) => {
@@ -1153,7 +1408,7 @@
                     try {
                         await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, col, id));
                     } catch (err) {
-                        console.warn("Cloud sync fout bij verwijderen:", err);
+                        console.warn("Cloud sync delete fout:", err);
                     }
                 }
             });
@@ -1172,7 +1427,7 @@
                             currentKm: 0
                         });
                     } catch (err) {
-                        console.warn("Cloud sync fout bij component vervangen:", err);
+                        console.warn("Cloud sync replace comp fout:", err);
                     }
                 }
             });
@@ -1343,7 +1598,7 @@
         };
 
         // =========================================================================
-        // WEERGAVE RENDERING & GRAFIEKEN (INCLUSIEF FIETSAANKOOP)
+        // RENDERING & GRAFIEKEN
         // =========================================================================
         function updateBikeDropdowns() {
             const filterSel = document.getElementById('global-bike-filter');
@@ -1410,16 +1665,16 @@
             document.getElementById('kpi-cost-per-km').innerText = `€${costPerKm.toFixed(2)} / km`;
             document.getElementById('kpi-wear-alert-count').innerText = `${wearAlertsCount} onderdelen vereisen service`;
 
-            // Voeg de aankoopwaarde van de fiets(en) toe aan de grafiekdata
+            // Voeg de aankoopwaarde van de fiets(en) toe op de daadwerkelijke aankoopdatum
             const chartExpenses = [...filteredExpenses];
             filteredBikes.forEach(b => {
                 if (b.purchasePrice && Number(b.purchasePrice) > 0) {
-                    const purchaseDate = b.createdAt ? b.createdAt.substring(0, 10) : new Date().toISOString().substring(0, 10);
+                    const pDate = b.purchaseDate || (b.createdAt ? b.createdAt.substring(0, 10) : new Date().toISOString().substring(0, 10));
                     chartExpenses.push({
                         bikeId: b.id,
                         amount: Number(b.purchasePrice),
                         category: 'Purchase',
-                        date: purchaseDate,
+                        date: pDate,
                         description: `Aankoop ${b.name}`
                     });
                 }
@@ -1438,7 +1693,7 @@
             const textColor = isDark ? '#94a3b8' : '#475569';
             const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
 
-            // Groepeer uitgaven per maand
+            // Groepeer en sorteer chronologisch
             const monthlyTotals = {};
             expData.forEach(e => {
                 if (!e.date) return;
@@ -1479,7 +1734,6 @@
                 });
             }
 
-            // Groepeer kosten per categorie
             const catTotals = {};
             expData.forEach(e => { 
                 catTotals[e.category] = (catTotals[e.category] || 0) + e.amount; 
@@ -1582,8 +1836,13 @@
                         <td class="p-3"><span class="text-[10px] bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 px-2 py-0.5 rounded-md font-bold">${r.rideType || 'Sport'}</span></td>
                         <td class="p-3 text-right font-bold text-blue-600 dark:text-blue-400">${r.distance} km</td>
                         <td class="p-3 text-right text-slate-500 dark:text-slate-400">${r.duration ? r.duration + ' min' : '-'}</td>
-                        <td class="p-3 text-center">
-                            <button onclick="deleteRecord('rides', '${r.id}')" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer"><i class="ph-bold ph-trash"></i></button>
+                        <td class="p-3 text-center whitespace-nowrap">
+                            <button onclick="editRide('${r.id}')" title="Bewerken" class="text-slate-400 hover:text-blue-500 p-1 cursor-pointer transition-colors mr-1">
+                                <i class="ph-bold ph-pencil-simple text-base"></i>
+                            </button>
+                            <button onclick="deleteRecord('rides', '${r.id}')" title="Verwijderen" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer transition-colors">
+                                <i class="ph-bold ph-trash text-base"></i>
+                            </button>
                         </td>
                     </tr>
                 `;
@@ -1613,7 +1872,14 @@
                                     <h4 class="text-base font-bold text-slate-900 dark:text-white">${c.name}</h4>
                                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5"><i class="ph-bold ph-bicycle"></i> ${bike ? bike.name : 'Onbekend'}</p>
                                 </div>
-                                <button onclick="deleteRecord('components', '${c.id}')" class="text-slate-400 hover:text-red-500 cursor-pointer"><i class="ph-bold ph-trash text-lg"></i></button>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="openEditComponentModal('${c.id}')" title="Bewerken" class="text-slate-400 hover:text-blue-500 p-1 cursor-pointer transition-colors">
+                                        <i class="ph-bold ph-pencil-simple text-lg"></i>
+                                    </button>
+                                    <button onclick="deleteRecord('components', '${c.id}')" title="Verwijderen" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer transition-colors">
+                                        <i class="ph-bold ph-trash text-lg"></i>
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="my-4">
@@ -1661,8 +1927,13 @@
                         <td class="p-3 text-slate-800 dark:text-slate-200 font-medium">${e.description}</td>
                         <td class="p-3 text-right text-slate-500 dark:text-slate-400">${e.odometer !== null ? e.odometer + ' km' : '-'}</td>
                         <td class="p-3 text-right font-black text-slate-900 dark:text-white">€${e.amount.toFixed(2)}</td>
-                        <td class="p-3 text-center">
-                            <button onclick="deleteRecord('expenses', '${e.id}')" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer"><i class="ph-bold ph-trash"></i></button>
+                        <td class="p-3 text-center whitespace-nowrap">
+                            <button onclick="editExpense('${e.id}')" title="Bewerken" class="text-slate-400 hover:text-blue-500 p-1 cursor-pointer transition-colors mr-1">
+                                <i class="ph-bold ph-pencil-simple text-base"></i>
+                            </button>
+                            <button onclick="deleteRecord('expenses', '${e.id}')" title="Verwijderen" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer transition-colors">
+                                <i class="ph-bold ph-trash text-base"></i>
+                            </button>
                         </td>
                     </tr>
                 `;
@@ -1683,6 +1954,7 @@
                 const bikeExpenses = expenses.filter(e => e.bikeId === b.id).reduce((sum, e) => sum + e.amount, 0);
                 const bikeRides = rides.filter(r => r.bikeId === b.id).reduce((sum, r) => sum + r.distance, 0);
                 const bikeTCO = ((b.purchasePrice || 0) + bikeExpenses) - (b.resaleValue || 0);
+                const purchaseDateFormatted = b.purchaseDate || (b.createdAt ? b.createdAt.substring(0, 10) : '-');
 
                 grid.innerHTML += `
                     <div class="pro-card p-6 flex flex-col justify-between">
@@ -1692,10 +1964,18 @@
                                     <span class="text-[10px] font-extrabold uppercase tracking-widest bg-blue-500/20 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded border border-blue-500/30">${b.type}</span>
                                     <h3 class="text-xl font-black text-slate-900 dark:text-white mt-2">${b.name}</h3>
                                 </div>
-                                <button onclick="deleteRecord('bikes', '${b.id}')" class="text-slate-400 hover:text-red-500 cursor-pointer"><i class="ph-bold ph-trash text-lg"></i></button>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="openEditBikeModal('${b.id}')" title="Bewerken" class="text-slate-400 hover:text-blue-500 p-1 cursor-pointer transition-colors">
+                                        <i class="ph-bold ph-pencil-simple text-lg"></i>
+                                    </button>
+                                    <button onclick="deleteRecord('bikes', '${b.id}')" title="Verwijderen" class="text-slate-400 hover:text-red-500 p-1 cursor-pointer transition-colors">
+                                        <i class="ph-bold ph-trash text-lg"></i>
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="space-y-2 border-t border-b border-slate-200 dark:border-slate-800 py-3 my-3 text-xs">
+                                <div class="flex justify-between text-slate-500 dark:text-slate-400"><span>Aankoopdatum:</span> <strong class="text-slate-800 dark:text-slate-200">${purchaseDateFormatted}</strong></div>
                                 <div class="flex justify-between text-slate-500 dark:text-slate-400"><span>Aankoopprijs:</span> <strong class="text-slate-800 dark:text-slate-200">€${(b.purchasePrice || 0).toFixed(2)}</strong></div>
                                 <div class="flex justify-between text-slate-500 dark:text-slate-400"><span>Totale Uitgaven:</span> <strong class="text-slate-800 dark:text-slate-200">€${bikeExpenses.toFixed(2)}</strong></div>
                                 <div class="flex justify-between text-slate-500 dark:text-slate-400"><span>Geschatte Restwaarde:</span> <strong class="text-slate-800 dark:text-slate-200">€${(b.resaleValue || 0).toFixed(2)}</strong></div>
